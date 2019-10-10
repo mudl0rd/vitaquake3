@@ -126,26 +126,7 @@ endif
 
 include Makefile.common
 
-SOURCES  := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/libretro code/sys code/jpeg-8c code/zlib
-INCLUDES := code/renderercommon code/qcommon code/botlib code/client code/server code/renderergl1 code/libretro code/sys code/jpeg-8c code/libretro-common/include code/zlib
-
-CFILES  := $(foreach dir,$(SOURCES), $(wildcard $(dir)/*.c))
-INCLUDE := $(foreach dir,$(INCLUDES), -I$(dir))
-
-SYSTEM = 	code/libretro-common/file/retro_dirent.o \
-			code/libretro-common/encodings/encoding_utf.o \
-			code/libretro-common/string/stdstring.o \
-			code/libretro-common/file/file_path.o \
-			code/libretro-common/compat/fopen_utf8.o \
-			code/libretro-common/compat/compat_strl.o \
-			code/libretro-common/compat/compat_posix_string.o \
-			code/libretro-common/compat/compat_strcasestr.o \
-			code/libretro-common/compat/compat_snprintf.o \
-			code/libretro-common/features/features_cpu.o \
-			code/libretro-common/streams/file_stream.o \
-			code/libretro-common/vfs/vfs_implementation.o
-
-OBJECTS := $(CFILES:.c=.o) $(SYSTEM)
+OBJECTS := $(SOURCES_C:.c=.o)
 
 COMPILE_PLATFORM=$(shell uname | sed -e 's/_.*//' | tr '[:upper:]' '[:lower:]' | sed -e 's/\//_/g')
 COMPILE_ARCH=$(shell uname -m | sed -e 's/i.86/x86/' | sed -e 's/^arm.*/arm/')
@@ -188,8 +169,16 @@ ifeq ($(COMPILE_ARCH),axp)
   COMPILE_ARCH=alpha
 endif
 
-CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) $(INCLUDE) -DUSE_ICON -std=c99 -DRELEASE -DSTANDALONE -DOPENARENA -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -fno-short-enums -fsigned-char
+CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) $(INCLUDE) -DUSE_ICON -DRELEASE -DSTANDALONE -DOPENARENA -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -fno-short-enums -fsigned-char
 CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic) -fpermissive
+
+ifeq ($(platform), unix)
+CFLAGS += -std=gnu99
+else
+CFLAGS += -std=c99
+endif
+CFLAGS     += $(INCFLAGS)
+CXXFLAGS   += $(INCFLAGS)
 
 all: $(TARGET)
 

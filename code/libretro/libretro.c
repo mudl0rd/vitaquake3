@@ -2082,7 +2082,7 @@ Responsible for doing a swapbuffers
 void GLimp_EndFrame( void )
 {
    if (use_pgl)
-      video_cb(pgl_buffer, scr_width, scr_height, scr_width);
+      video_cb(pgl_buffer, scr_width, scr_height, scr_width << 1);
    else
       video_cb(RETRO_HW_FRAME_BUFFER_VALID, scr_width, scr_height, 0);
 	gVertexBuffer = gVertexBufferPtr;

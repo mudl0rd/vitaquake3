@@ -41,3 +41,30 @@ SYSTEM = 	$(LIBRETRO_COMM_DIR)/file/retro_dirent.c \
 				$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
 
 SOURCES_C  += $(SYSTEM)
+
+TINYGL      = $(CORE_DIR)/code/tinygl/api.c \
+				  $(CORE_DIR)/code/tinygl/arrays.c \
+				  $(CORE_DIR)/code/tinygl/clear.c \
+				  $(CORE_DIR)/code/tinygl/clip.c \
+				  $(CORE_DIR)/code/tinygl/error.c \
+				  $(CORE_DIR)/code/tinygl/get.c \
+				  $(CORE_DIR)/code/tinygl/image_util.c \
+				  $(CORE_DIR)/code/tinygl/init.c \
+				  $(CORE_DIR)/code/tinygl/light.c \
+				  $(CORE_DIR)/code/tinygl/list.c \
+				  $(CORE_DIR)/code/tinygl/matrix.c \
+				  $(CORE_DIR)/code/tinygl/memory.c \
+				  $(CORE_DIR)/code/tinygl/misc.c \
+				  $(CORE_DIR)/code/tinygl/msghandling.c \
+				  $(CORE_DIR)/code/tinygl/oscontext.c \
+				  $(CORE_DIR)/code/tinygl/select.c \
+				  $(CORE_DIR)/code/tinygl/specbuf.c \
+				  $(CORE_DIR)/code/tinygl/texture.c \
+				  $(CORE_DIR)/code/tinygl/vertex.c \
+				  $(CORE_DIR)/code/tinygl/zbuffer.c \
+				  $(CORE_DIR)/code/tinygl/zdither.c \
+				  $(CORE_DIR)/code/tinygl/zline.c \
+				  $(CORE_DIR)/code/tinygl/zmath.c \
+				  $(CORE_DIR)/code/tinygl/ztriangle.c
+
+SOURCES_C  +=  $(TINYGL)

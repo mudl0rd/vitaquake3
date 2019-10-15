@@ -13,9 +13,6 @@
 #include "../qcommon/qcommon.h"
 #include "../client/client.h"
 #include "../client/snd_local.h"
-#include "../tinygl/gl.h"
-#include "../tinygl/zbuffer.h"
-#include "../tinygl/zgl.h"
 
 #if defined(HAVE_PSGL)
 #define RARCH_GL_FRAMEBUFFER GL_FRAMEBUFFER_OES
@@ -39,7 +36,6 @@ static int invert_y_axis = 1;
 static unsigned audio_buffer_ptr;
 static int16_t audio_buffer[BUFFER_SIZE];
 
-uint8_t use_pgl = false;
 int scr_width = 960, scr_height = 544;
 
 void ( APIENTRY * qglBlendFunc )(GLenum sfactor, GLenum dfactor);
@@ -99,11 +95,11 @@ void ( APIENTRY * qglStencilMask )(GLuint mask);
 #define MAX_INDICES 4096
 uint16_t* indices;
 float *gVertexBuffer;
-float *gColorBuffer;
-float *gColorBuffer255;
+uint8_t *gColorBuffer;
+uint8_t *gColorBuffer255;
 float *gTexCoordBuffer;
 float *gVertexBufferPtr;
-float *gColorBufferPtr;
+uint8_t *gColorBufferPtr;
 float *gTexCoordBufferPtr;
 
 typedef struct api_entry{
@@ -128,18 +124,8 @@ void vglColorPointerMapped(GLenum type, const GLvoid *pointer) {
 	qglColorPointer(4, type, 0, pointer);
 }
 
-void vglDrawObjects(GLenum mode, GLsizei count, GLboolean implicit_wvp)
-{
-   if (use_pgl)
-   {
-      int i;
-      pglBegin(mode);
-      for (i=0;i<count;i++)
-         pglArrayElement(i);
-      pglEnd();
-   }
-   else
-		qglDrawElements(mode, count, GL_UNSIGNED_SHORT, indices);
+void vglDrawObjects(GLenum mode, GLsizei count, GLboolean implicit_wvp) {
+	qglDrawElements(mode, count, GL_UNSIGNED_SHORT, indices);
 }
 
 void vglTexCoordPointer(GLint size, GLenum type, GLsizei stride, GLuint count, const GLvoid *pointer) {
@@ -297,86 +283,7 @@ gp_layout_t *gp_layoutp = NULL;
 
 static bool context_needs_reinit = true;
 
-static bool initialize_pgl(void)
-{
-	funcs[0].ptr  = qglTexImage2D         = pglTexImage2D;
-#if 0
-	funcs[1].ptr  = qglTexSubImage2D      = pglTexSubImage2D;
-#endif
-	funcs[2].ptr  = qglTexParameteri      = pglTexParameteri;
-#if 0
-	funcs[3].ptr  = qglBindFramebuffer    = pglBindFramebuffer;
-	funcs[4].ptr  = qglGenerateMipmap     = pglGenerateMipmap;
-	funcs[5].ptr  = qglBlendFunc          = pglBlendFunc;
-	funcs[6].ptr  = qglTexSubImage2D      = pglTexSubImage2D;
-	funcs[7].ptr  = qglDepthMask          = pglDepthMask;
-#endif
-	funcs[8].ptr  = qglPushMatrix         = pglPushMatrix;
-	funcs[9].ptr  = qglRotatef            = pglRotatef;
-	funcs[10].ptr = qglTranslatef         = pglTranslatef;
-#if 0
-	funcs[11].ptr = qglDepthRange         = pglDepthRange;
-#endif
-	funcs[12].ptr = qglClear              = pglClear;
-	funcs[13].ptr = qglCullFace           = pglCullFace;
-	funcs[14].ptr = qglClearColor         = pglClearColor;
-	funcs[15].ptr = qglEnable             = pglEnable;
-	funcs[16].ptr = qglDisable            = pglDisable;
-	funcs[17].ptr = qglEnableClientState  = pglEnableClientState;
-	funcs[18].ptr = qglDisableClientState = pglDisableClientState;
-	funcs[19].ptr = qglPopMatrix          = pglPopMatrix;
-	funcs[20].ptr = qglGetFloatv          = pglGetFloatv;
-	funcs[21].ptr = qglOrtho              = pglOrtho;
-	funcs[22].ptr = qglFrustum            = pglFrustum;
-	funcs[23].ptr = qglLoadMatrixf        = pglLoadMatrixf;
-	funcs[24].ptr = qglLoadIdentity       = pglLoadIdentity;
-	funcs[25].ptr = qglMatrixMode         = pglMatrixMode;
-	funcs[26].ptr = qglBindTexture        = pglBindTexture;
-#if 0
-	funcs[27].ptr = qglReadPixels         = pglReadPixels;
-#endif
-	funcs[28].ptr = qglPolygonMode        = pglPolygonMode;
-	funcs[29].ptr = qglVertexPointer      = pglVertexPointer;
-	funcs[30].ptr = qglTexCoordPointer    = pglTexCoordPointer;
-	funcs[31].ptr = qglColorPointer       = pglColorPointer;
-#if 0
-	funcs[32].ptr = qglDrawElements       = pglDrawElements;
-#endif
-	funcs[33].ptr = qglViewport           = pglViewport;
-	funcs[34].ptr = qglDeleteTextures     = pglDeleteTextures;
-#if 0
-	funcs[35].ptr = qglClearStencil       = pglClearStencil;
-#endif
-	funcs[36].ptr = qglColor4f            = pglColor4f;
-#if 0
-	funcs[37].ptr = qglScissor            = pglScissor;
-	funcs[38].ptr = qglStencilFunc        = pglStencilFunc;
-	funcs[39].ptr = qglStencilOp          = pglStencilOp;
-#endif
-	funcs[40].ptr = qglScalef             = pglScalef;
-#if 0
-	funcs[41].ptr = qglDepthFunc          = pglDepthFunc;
-#endif
-	funcs[42].ptr = qglTexEnvi            = pglTexEnvi;
-#if 0
-	funcs[43].ptr = qglAlphaFunc          = pglAlphaFunc;
-#endif
-	funcs[44].ptr = qglClearDepth         = pglClearDepth;
-#if 0
-	funcs[45].ptr = qglFinish             = pglFinish;
-#endif
-	funcs[46].ptr = qglGenTextures        = pglGenTextures;
-	funcs[47].ptr = qglPolygonOffset      = pglPolygonOffset;
-#if 0
-	funcs[48].ptr = qglClipPlane          = pglClipPlane;
-	funcs[49].ptr = qglColorMask          = pglColorMask;
-	funcs[50].ptr = qglLineWidth          = pglLineWidth;
-	funcs[51].ptr = qglStencilMask        = pglStencilMask;
-#endif
-	return true;
-}
-
-static bool initialize_gl(void)
+static bool initialize_gl()
 {
 	funcs[0].ptr  = qglTexImage2D         = hw_render.get_proc_address ("glTexImage2D");
 	funcs[1].ptr  = qglTexSubImage2D      = hw_render.get_proc_address ("glTexSubImage2D");
@@ -433,52 +340,44 @@ static bool initialize_gl(void)
 	
 	if (log_cb) {
 		int i;
-		for (i = 0; i < GL_FUNCS_NUM; i++)
-      {
-         if (!funcs[i].ptr) log_cb(RETRO_LOG_ERROR, "vitaQuakeIII: cannot get GL function #%d symbol.\n", i);
-      }
+		for (i = 0; i < GL_FUNCS_NUM; i++) {
+			if (!funcs[i].ptr) log_cb(RETRO_LOG_ERROR, "vitaQuakeII: cannot get GL function #%d symbol.\n", i);
+		}
 	}
 	
 	return true;
 }
 
-static void context_destroy(void)
+static void context_destroy() 
 {
 	context_needs_reinit = true;
 }
 
-static void keyboard_cb(bool down, unsigned keycode,
-      uint32_t character, uint16_t mod)
+static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
 {
-   /* character-only events are discarded */
-   if (keycode != RETROK_UNKNOWN)
-   {
-      if (down)
-         Sys_SetKeys((uint32_t) keycode, 1);
-      else
-         Sys_SetKeys((uint32_t) keycode, 0);
-   }
+	// character-only events are discarded
+	if (keycode != RETROK_UNKNOWN) {
+		if (down)
+			Sys_SetKeys((uint32_t) keycode, 1);
+		else
+			Sys_SetKeys((uint32_t) keycode, 0);
+	}
 }
 
-bool first_reset = true;
+first_reset = true;
 
 extern void CL_Vid_Restart_f( void );
 
-static void context_reset(void)
-{ 
-   if (!context_needs_reinit)
-      return;
+static void context_reset() { 
+	if (!context_needs_reinit)
+		return;
 
-   if (use_pgl)
-      initialize_pgl();
-   else
-   {
-      initialize_gl();
-      if (!first_reset)
-         CL_Vid_Restart_f();
-      first_reset = false;
-   }
-   context_needs_reinit = false;
+	initialize_gl();
+	if (!first_reset) {
+		CL_Vid_Restart_f();
+	}
+	first_reset = false;
+	context_needs_reinit = false;
 }
 
 /* con.c */
@@ -1170,8 +1069,6 @@ static void audio_callback(void)
 }
 
 bool is_missionpack = false;
-static ZBuffer *frameBuffer;
-static void *pgl_buffer;
 
 bool retro_load_game(const struct retro_game_info *info)
 {
@@ -1191,20 +1088,11 @@ bool retro_load_game(const struct retro_game_info *info)
 	hw_render.stencil = true;
 
 	if (!environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
-   {
-      if (log_cb)
-         log_cb(RETRO_LOG_ERROR, "vitaQuakeIII: libretro frontend doesn't have OpenGL support, falling back to TinyGL.\n");
-
-      fmt = RETRO_PIXEL_FORMAT_RGB565;
-      if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-      {
-         if (log_cb)
-            log_cb(RETRO_LOG_INFO, "RGB565 is not supported.\n");
-         return false;
-      }
-      use_pgl = true;
-      initialize_pgl();
-   }
+	{
+		if (log_cb)
+			log_cb(RETRO_LOG_ERROR, "vitaQuakeIII: libretro frontend doesn't have OpenGL support.\n");
+		return false;
+	}
 	
 	int i;
 	char *path_lower;
@@ -1225,19 +1113,9 @@ bool retro_load_game(const struct retro_game_info *info)
 	for (i=0; path_lower[i]; ++i)
 		path_lower[i] = tolower(path_lower[i]);
 	
-#if 0
-	environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
-#endif
+//	environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
 	
 	update_variables(true);
-
-   if (use_pgl)
-   {
-		pgl_buffer  = malloc(scr_width * scr_height * 2);
-		frameBuffer = ZB_open(scr_width, scr_height, ZB_MODE_5R6G5B, 0, 0, 0, 0);
-		frameBuffer->pbuf = (PIXEL *)pgl_buffer;
-		glInit(frameBuffer);
-	}
 
 	extract_directory(g_rom_dir, info->path, sizeof(g_rom_dir));
 	
@@ -1292,8 +1170,7 @@ bool first_boot = true;
 
 void retro_run(void)
 {
-   if (!use_pgl)
-      qglBindFramebuffer(RARCH_GL_FRAMEBUFFER, hw_render.get_current_framebuffer());
+	qglBindFramebuffer(RARCH_GL_FRAMEBUFFER, hw_render.get_current_framebuffer());
 	qglEnable(GL_TEXTURE_2D);
 	qglEnableClientState(GL_VERTEX_ARRAY);
 	
@@ -1315,8 +1192,6 @@ void retro_run(void)
 		NET_Init();
 		update_variables(false);
 		Cvar_Set("name", Sys_GetCurrentUser());
-      if (use_pgl)
-         Cvar_SetValue("r_noportals", 1);
 		first_boot = false;
 	}
 	
@@ -2052,13 +1927,12 @@ void GLimp_Init( qboolean coreContext)
 	}
 	qglEnableClientState(GL_VERTEX_ARRAY);
 	gVertexBufferPtr = (float*)malloc(0x400000);
-	gColorBufferPtr = (float*)malloc(0x200000 * sizeof(float));
+	gColorBufferPtr = (uint8_t*)malloc(0x200000);
 	gTexCoordBufferPtr = (float*)malloc(0x200000);
-	gColorBuffer255 = (float*)malloc(0x3000 * sizeof(float));
-   for(i = 0; i < 0x3000; ++i)
-		gColorBuffer255[i] = 1.0f;
-	gVertexBuffer   = gVertexBufferPtr;
-	gColorBuffer    = gColorBufferPtr;
+	gColorBuffer255 = (uint8_t*)malloc(0x3000);
+	memset(gColorBuffer255, 0xFF, 0x3000);
+	gVertexBuffer = gVertexBufferPtr;
+	gColorBuffer = gColorBufferPtr;
 	gTexCoordBuffer = gTexCoordBufferPtr;
 	
 	strncpy(glConfig.vendor_string, "unknown", sizeof(glConfig.vendor_string));
@@ -2081,10 +1955,7 @@ Responsible for doing a swapbuffers
 */
 void GLimp_EndFrame( void )
 {
-   if (use_pgl)
-      video_cb(pgl_buffer, scr_width, scr_height, scr_width);
-   else
-      video_cb(RETRO_HW_FRAME_BUFFER_VALID, scr_width, scr_height, 0);
+	video_cb(RETRO_HW_FRAME_BUFFER_VALID, scr_width, scr_height, 0);
 	gVertexBuffer = gVertexBufferPtr;
 	gColorBuffer = gColorBufferPtr;
 	gTexCoordBuffer = gTexCoordBufferPtr;

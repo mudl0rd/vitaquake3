@@ -1311,10 +1311,10 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 
 	// draw wireframe outline
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
-	if (!use_pgl) qglDepthRange( 0, 0 );
+	qglDepthRange( 0, 0 );
 	qglColor4f( 1, 1, 1, 1 );
 	vglDrawObjects(GL_TRIANGLE_FAN, 4, GL_TRUE);
-	if (!use_pgl) qglDepthRange( 0, 1 );
+	qglDepthRange( 0, 1 );
 }
 
 /*

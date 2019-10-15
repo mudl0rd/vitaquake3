@@ -103,7 +103,7 @@ static void DrawTris (shaderCommands_t *input) {
 	qglColor4f (1,1,1, 1);
 
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
-	if (!use_pgl) qglDepthRange( 0, 0 );
+	qglDepthRange( 0, 0 );
 
 	qglDisableClientState (GL_COLOR_ARRAY);
 	qglDisableClientState (GL_TEXTURE_COORD_ARRAY);
@@ -127,7 +127,7 @@ static void DrawTris (shaderCommands_t *input) {
 	//->	qglUnlockArraysEXT();
 	//->	GLimp_LogComment( "glUnlockArraysEXT\n" );
 	//->}
-	if (!use_pgl) qglDepthRange( 0, 1 );
+	qglDepthRange( 0, 1 );
 }
 
 
@@ -144,7 +144,7 @@ static void DrawNormals (shaderCommands_t *input) {
 
 	GL_Bind( tr.whiteImage );
 	qglColor4f (1,1,1, 1);
-	if (!use_pgl) qglDepthRange( 0, 0 );	// never occluded
+	qglDepthRange( 0, 0 );	// never occluded
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 
 	float *vertices = gVertexBuffer;
@@ -158,7 +158,7 @@ static void DrawNormals (shaderCommands_t *input) {
 	vglVertexPointerMapped(vertices);
 	vglDrawObjects(GL_LINES, input->numVertexes * 2, GL_TRUE);
 
-	if (!use_pgl) qglDepthRange( 0, 1 );
+	qglDepthRange( 0, 1 );
 }
 
 /*
@@ -273,10 +273,10 @@ static void ProjectDlightTexture_scalar( void ) {
 	int		i, l;
 	vec3_t	origin;
 	float	*texCoords;
-	float	*colors;
+	byte	*colors;
 	byte	clipBits[SHADER_MAX_VERTEXES];
 	float	texCoordsArray[SHADER_MAX_VERTEXES][2];
-	float	colorArray[SHADER_MAX_VERTEXES][4];
+	byte	colorArray[SHADER_MAX_VERTEXES][4];
 	glIndex_t	hitIndexes[SHADER_MAX_INDEXES];
 	int		numIndexes;
 	float	scale;
@@ -373,10 +373,10 @@ static void ProjectDlightTexture_scalar( void ) {
 				}
 			}
 			clipBits[i] = clip;
-			colors[0] = (float)(ri.ftol(floatColor[0] * modulate)) / 255.0f;
-			colors[1] = (float)(ri.ftol(floatColor[1] * modulate)) / 255.0f;
-			colors[2] = (float)(ri.ftol(floatColor[2] * modulate)) / 255.0f;
-			colors[3] = 1.0f;
+			colors[0] = ri.ftol(floatColor[0] * modulate);
+			colors[1] = ri.ftol(floatColor[1] * modulate);
+			colors[2] = ri.ftol(floatColor[2] * modulate);
+			colors[3] = 255;
 		}
 
 		// build a list of triangles that need light
@@ -404,14 +404,14 @@ static void ProjectDlightTexture_scalar( void ) {
 		qglEnableClientState( GL_COLOR_ARRAY );
 
 		float *texcoord = gTexCoordBuffer;
-		float *colorbuf = gColorBuffer;
+		uint8_t *colorbuf = gColorBuffer;
 		for (i = 0 ; i < numIndexes ; i++) {
 			memcpy(gTexCoordBuffer, texCoordsArray[hitIndexes[i]], sizeof(vec2_t));
 			gTexCoordBuffer += 2;
-			memcpy(gColorBuffer, colorArray[hitIndexes[i]], sizeof(vec4_t));
+			memcpy(gColorBuffer, colorArray[hitIndexes[i]], sizeof(uint32_t));
 			gColorBuffer += 4;
 		}
-		vglColorPointerMapped(GL_FLOAT, colorbuf);
+		vglColorPointerMapped(GL_UNSIGNED_BYTE, colorbuf);
 		vglTexCoordPointerMapped(texcoord);
 
 		GL_Bind( tr.dlightImage );
@@ -464,17 +464,14 @@ static void RB_FogPass( void ) {
 	}
 
 	float *texcoord = gTexCoordBuffer;
-	float *colorbuf = gColorBuffer;
+	uint8_t *colorbuf = gColorBuffer;
 	for (i = 0 ; i < tess.numIndexes ; i++) {
 		memcpy(gColorBuffer, tess.svars.colors[tess.indexes[i]], sizeof(uint32_t));
-		gColorBuffer[0] = (float)(tess.svars.colors[tess.indexes[i]][0]) / 255.0f;
-		gColorBuffer[1] = (float)(tess.svars.colors[tess.indexes[i]][1]) / 255.0f;
-		gColorBuffer[2] = (float)(tess.svars.colors[tess.indexes[i]][2]) / 255.0f;
-		gColorBuffer[3] = (float)(tess.svars.colors[tess.indexes[i]][3]) / 255.0f;
+		memcpy(gTexCoordBuffer, tess.svars.texcoords[0][tess.indexes[i]], sizeof(vec2_t));
 		gTexCoordBuffer += 2;
 		gColorBuffer += 4;
 	}
-	vglColorPointerMapped(GL_FLOAT, colorbuf);
+	vglColorPointerMapped(GL_UNSIGNED_BYTE, colorbuf);
 	vglTexCoordPointerMapped(texcoord);
 	
 	R_DrawElements( tess.numIndexes, tess.indexes );
@@ -820,16 +817,13 @@ static void RB_IterateStagesGeneric( shaderCommands_t *input )
 		//if ( !setArraysOnce )
 		//{
 			qglEnableClientState( GL_COLOR_ARRAY );
-			float *colorbuf = gColorBuffer;
+			uint8_t *colorbuf = gColorBuffer;
 			int i;
 			for (i = 0 ; i < input->numIndexes ; i++) {
-				gColorBuffer[0] = (float)(input->svars.colors[input->indexes[i]][0]) / 255.0f;
-				gColorBuffer[1] = (float)(input->svars.colors[input->indexes[i]][1]) / 255.0f;
-				gColorBuffer[2] = (float)(input->svars.colors[input->indexes[i]][2]) / 255.0f;
-				gColorBuffer[3] = (float)(input->svars.colors[input->indexes[i]][3]) / 255.0f;
+				memcpy(gColorBuffer, input->svars.colors[input->indexes[i]], sizeof(uint32_t));
 				gColorBuffer += 4;
 			}
-			vglColorPointerMapped(GL_FLOAT, colorbuf);
+			vglColorPointerMapped(GL_UNSIGNED_BYTE, colorbuf);
 		//}
 
 		//
@@ -999,22 +993,19 @@ void RB_StageIteratorVertexLitTexture( void )
 	qglEnableClientState( GL_COLOR_ARRAY);
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
 
-	float *colorbuf = gColorBuffer;
+	uint8_t *colorbuf = gColorBuffer;
 	float *texcoord = gTexCoordBuffer;
 	float *vertices = gVertexBuffer;
 	int i;
 	for (i = 0 ; i < tess.numIndexes ; i++) {
-		gColorBuffer[0] = (float)(tess.svars.colors[tess.indexes[i]][0]) / 255.0f;
-		gColorBuffer[1] = (float)(tess.svars.colors[tess.indexes[i]][1]) / 255.0f;
-		gColorBuffer[2] = (float)(tess.svars.colors[tess.indexes[i]][2]) / 255.0f;
-		gColorBuffer[3] = (float)(tess.svars.colors[tess.indexes[i]][3]) / 255.0f;
+		memcpy(gColorBuffer, tess.svars.colors[tess.indexes[i]], sizeof(uint32_t));
 		gColorBuffer += 4;
 		memcpy(gTexCoordBuffer, tess.texCoords[tess.indexes[i]][0], sizeof(vec2_t));
 		gTexCoordBuffer += 2;
 		memcpy(gVertexBuffer, input->xyz[input->indexes[i]], sizeof(vec3_t));
 		gVertexBuffer += 3;
 	}
-	vglColorPointerMapped(GL_FLOAT, colorbuf);
+	vglColorPointerMapped(GL_UNSIGNED_BYTE, colorbuf);
 	vglTexCoordPointerMapped(texcoord);
 	vglVertexPointerMapped(vertices);
 
@@ -1090,7 +1081,7 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 		gVertexBuffer += 3;
 	}
 	vglVertexPointerMapped(vertices);
-	vglColorPointerMapped(GL_FLOAT, gColorBuffer255);
+	vglColorPointerMapped(GL_UNSIGNED_BYTE, gColorBuffer255);
 
 	//
 	// select base stage

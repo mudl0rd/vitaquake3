@@ -147,7 +147,7 @@ void RB_ShadowFinish( void ) {
 		return;
 	}
 	qglEnable( GL_STENCIL_TEST );
-	if (!use_pgl) qglStencilFunc( GL_NOTEQUAL, 0, 255 );
+	qglStencilFunc( GL_NOTEQUAL, 0, 255 );
 
 	qglDisable (GL_CLIP_PLANE0);
 	GL_Cull( CT_TWO_SIDED );

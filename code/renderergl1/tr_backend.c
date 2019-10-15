@@ -132,25 +132,24 @@ void GL_TexEnv( int env )
 
 	glState.texEnv[glState.currenttmu] = env;
 
-	if (!use_pgl) {
-		switch ( env )
-		{
-		case GL_MODULATE:
-			qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-			break;
-		case GL_REPLACE:
-			qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
-			break;
-		case GL_DECAL:
-			qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
-			break;
-		case GL_ADD:
-			qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
-			break;
-		default:
-			ri.Error( ERR_DROP, "GL_TexEnv: invalid env '%d' passed", env );
-			break;
-		}
+
+	switch ( env )
+	{
+	case GL_MODULATE:
+		qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+		break;
+	case GL_REPLACE:
+		qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+		break;
+	case GL_DECAL:
+		qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL );
+		break;
+	case GL_ADD:
+		qglTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
+		break;
+	default:
+		ri.Error( ERR_DROP, "GL_TexEnv: invalid env '%d' passed", env );
+		break;
 	}
 }
 
@@ -176,11 +175,11 @@ void GL_State( unsigned long stateBits )
 	{
 		if ( stateBits & GLS_DEPTHFUNC_EQUAL )
 		{
-			if (!use_pgl) qglDepthFunc( GL_EQUAL );
+			qglDepthFunc( GL_EQUAL );
 		}
 		else
 		{
-			if (!use_pgl) qglDepthFunc( GL_LEQUAL );
+			qglDepthFunc( GL_LEQUAL );
 		}
 	}
 
@@ -259,7 +258,7 @@ void GL_State( unsigned long stateBits )
 			}
 
 			qglEnable( GL_BLEND );
-			if (!use_pgl) qglBlendFunc( srcFactor, dstFactor );
+			qglBlendFunc( srcFactor, dstFactor );
 		}
 		else
 		{
@@ -274,11 +273,11 @@ void GL_State( unsigned long stateBits )
 	{
 		if ( stateBits & GLS_DEPTHMASK_TRUE )
 		{
-			if (!use_pgl) qglDepthMask( GL_TRUE );
+			qglDepthMask( GL_TRUE );
 		}
 		else
 		{
-			if (!use_pgl) qglDepthMask( GL_FALSE );
+			qglDepthMask( GL_FALSE );
 		}
 	}
 
@@ -324,15 +323,15 @@ void GL_State( unsigned long stateBits )
 			break;
 		case GLS_ATEST_GT_0:
 			qglEnable( GL_ALPHA_TEST );
-			if (!use_pgl) qglAlphaFunc( GL_GREATER, 0.0f );
+			qglAlphaFunc( GL_GREATER, 0.0f );
 			break;
 		case GLS_ATEST_LT_80:
 			qglEnable( GL_ALPHA_TEST );
-			if (!use_pgl) qglAlphaFunc( GL_LESS, 0.5f );
+			qglAlphaFunc( GL_LESS, 0.5f );
 			break;
 		case GLS_ATEST_GE_80:
 			qglEnable( GL_ALPHA_TEST );
-			if (!use_pgl) qglAlphaFunc( GL_GEQUAL, 0.5f );
+			qglAlphaFunc( GL_GEQUAL, 0.5f );
 			break;
 		default:
 			assert( 0 );
@@ -375,7 +374,7 @@ static void SetViewportAndScissor( void ) {
 	// set the window clipping
 	qglViewport( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
 		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
-	if (!use_pgl) qglScissor( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
+	qglScissor( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
 		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
 }
 
@@ -392,7 +391,7 @@ void RB_BeginDrawingView (void) {
 
 	// sync with gl if needed
 	if ( r_finish->integer == 1 && !glState.finishCalled ) {
-		if (!use_pgl) qglFinish ();
+		qglFinish ();
 		glState.finishCalled = qtrue;
 	}
 	if ( r_finish->integer == 0 ) {
@@ -459,7 +458,7 @@ void RB_BeginDrawingView (void) {
 		plane2[3] = DotProduct (plane, backEnd.viewParms.or.origin) - plane[3];
 
 		qglLoadMatrixf( s_flipMatrix );
-		if (!use_pgl) qglClipPlane (GL_CLIP_PLANE0, plane2);
+		qglClipPlane (GL_CLIP_PLANE0, plane2);
 		qglEnable (GL_CLIP_PLANE0);
 	} else {
 		qglDisable (GL_CLIP_PLANE0);
@@ -602,7 +601,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 						}
 					}
 
-					if(!oldDepthRange && !use_pgl)
+					if(!oldDepthRange)
 						qglDepthRange (0, 0.3);
 				}
 				else
@@ -614,7 +613,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 						qglMatrixMode(GL_MODELVIEW);
 					}
 
-					if (!use_pgl) qglDepthRange (0, 1);
+					qglDepthRange (0, 1);
 				}
 
 				oldDepthRange = depthRange;
@@ -637,7 +636,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	// go back to the world modelview matrix
 	qglLoadMatrixf( backEnd.viewParms.world.modelMatrix );
-	if ( depthRange && (!use_pgl) ) {
+	if ( depthRange ) {
 		qglDepthRange (0, 1);
 	}
 
@@ -672,11 +671,10 @@ void	RB_SetGL2D (void) {
 
 	// set 2D virtual screen size
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
-	if (!use_pgl) qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
+	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglMatrixMode(GL_PROJECTION);
 	qglLoadIdentity ();
-	if (use_pgl) pglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
-	else qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
+	qglOrtho (0, glConfig.vidWidth, glConfig.vidHeight, 0, 0, 1);
 	qglMatrixMode(GL_MODELVIEW);
 	qglLoadIdentity ();
 
@@ -716,7 +714,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	}
 
 	// we definitely want to sync every frame for the cinematics
-	if (!use_pgl) qglFinish();
+	qglFinish();
 
 	start = 0;
 	if ( r_speeds->integer ) {
@@ -751,7 +749,6 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		( cols - 0.5f ) / cols, ( rows - 0.5f ) / rows,
 		0.5f / cols, ( rows - 0.5f ) / rows
 	};
-	
 	float vertices[] = {
 		x, y, 0.0f,
 		x+w, y, 0.0f,
@@ -769,24 +766,21 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
 
 	GL_Bind( tr.scratchImage[client] );
-	
+
 	// if the scratchImage isn't in the format we want, specify it as a new texture
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = tr.scratchImage[client]->uploadWidth = cols;
 		tr.scratchImage[client]->height = tr.scratchImage[client]->uploadHeight = rows;
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-		if (!use_pgl) {
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
-			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );	
-		}
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
+		qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );	
 	} else {
 		if (dirty) {
 			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 			// it and don't try and do a texture compression
-			if (use_pgl) qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-			else qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
+			qglTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data );
 		}
 	}
 }
@@ -954,7 +948,7 @@ void RB_ShowImages( void ) {
 
 	qglClear( GL_COLOR_BUFFER_BIT );
 
-	if (!use_pgl) qglFinish();
+	qglFinish();
 
 	start = ri.Milliseconds();
 
@@ -992,7 +986,7 @@ void RB_ShowImages( void ) {
 		
 	}
 
-	if (!use_pgl) qglFinish();
+	qglFinish();
 
 	end = ri.Milliseconds();
 	ri.Printf( PRINT_ALL, "%i msec to draw all images\n", end - start );
@@ -1056,7 +1050,7 @@ const void	*RB_SwapBuffers( const void *data ) {
 	cmd = (const swapBuffersCommand_t *)data;
 
 	if ( !glState.finishCalled ) {
-		if (!use_pgl) qglFinish();
+		qglFinish();
 	}
 
 	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );

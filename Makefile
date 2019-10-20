@@ -107,8 +107,7 @@ else ifeq ($(platform), vita)
    CC = arm-vita-eabi-gcc
    AR = arm-vita-eabi-ar
    CXXFLAGS += -Wl,-q -Wall -O3
-	STATIC_LINKING = 1
-
+   STATIC_LINKING = 1
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)
     include $(DEVKITPRO)/libnx/switch_rules
@@ -122,12 +121,12 @@ else ifeq ($(platform), libnx)
     CXXFLAGS := $(ASFLAGS) $(CFLAGS) -fno-rtti -std=gnu++11
     CFLAGS += -std=gnu11
     STATIC_LINKING = 1
-	HAVE_OPENGL = 1
-
+    HAVE_OPENGL = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+   LDFLAGS += -lwsock32 -lWS2_32
 endif
 
 LDFLAGS += $(LIBM)

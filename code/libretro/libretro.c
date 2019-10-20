@@ -1071,6 +1071,7 @@ static void audio_callback(void)
 }
 
 bool is_missionpack = false;
+bool is_urt = false;
 
 bool retro_load_game(const struct retro_game_info *info)
 {
@@ -1162,6 +1163,9 @@ bool retro_load_game(const struct retro_game_info *info)
 	if (strstr(path_lower, "missionpack"))
 		is_missionpack = true;
 	
+	if (strstr(path_lower, "q3ut4"))
+		is_urt = true;
+	
 	Sys_SetBinaryPath(g_rom_dir);
     Sys_SetDefaultInstallPath(g_rom_dir);
 
@@ -1188,8 +1192,13 @@ void retro_run(void)
 		Sys_Milliseconds();
 	
 		CON_Init();
-		if (is_missionpack)
+		if (is_missionpack) {
 			sprintf(commandLine, "+set fs_game missionpack");
+			printf("Launching Quake III: Team Arena...\n");
+		} else if (is_urt) {
+			sprintf(commandLine, "+set fs_game q3ut4");
+			printf("Launching Urban Terror...\n");
+		}
 		Com_Init(commandLine);
 		NET_Init();
 		update_variables(false);

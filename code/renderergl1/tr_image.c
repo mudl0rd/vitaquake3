@@ -683,9 +683,7 @@ static void Upload32( unsigned *data,
 
 	if (mipmap)
 	{
-#ifndef URBANTERROR
 		qglGenerateMipmap(GL_TEXTURE_2D);
-#endif
 	}
 done:
 

@@ -2244,6 +2244,12 @@ void IN_Restart( void )
 /* net.c */
 typedef unsigned short	sa_family_t;
 
+#ifndef SOCKET_ERROR
+typedef int SOCKET;
+#	define INVALID_SOCKET		-1
+#	define SOCKET_ERROR			-1
+#endif
+
 #	define closesocket			close
 #	define ioctlsocket			ioctl
 typedef int	ioctlarg_t;

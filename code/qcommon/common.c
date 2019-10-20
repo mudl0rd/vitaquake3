@@ -2457,8 +2457,6 @@ void Com_GameRestart_f(void)
 	Com_GameRestart(0, qtrue);
 }
 
-#ifndef STANDALONE
-
 // TTimo: centralizing the cl_cdkey stuff after I discovered a buffer overflow problem with the dedicated server version
 //   not sure it's necessary to have different defaults for regular and dedicated, but I don't want to risk it
 //   https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=470
@@ -2577,8 +2575,6 @@ out:
 #endif
 }
 #endif
-
-#endif // STANDALONE
 
 static void Com_DetectAltivec(void)
 {
@@ -2708,11 +2704,11 @@ void Com_Init( char *commandLine ) {
 	// done early so bind command exists
 	CL_InitKeyCommands();
 
-#ifdef STANDALONE
-	com_standalone = Cvar_Get("com_standalone", "1", CVAR_ROM);
-#else
-	com_standalone = Cvar_Get("com_standalone", "0", CVAR_ROM);
-#endif
+	if (is_standalone)
+		com_standalone = Cvar_Get("com_standalone", "1", CVAR_ROM);
+	else
+		com_standalone = Cvar_Get("com_standalone", "0", CVAR_ROM);
+
 	com_basegame = Cvar_Get("com_basegame", BASEGAME, CVAR_INIT);
 	com_homepath = Cvar_Get("com_homepath", "", CVAR_INIT|CVAR_PROTECTED);
 
@@ -2834,15 +2830,12 @@ void Com_Init( char *commandLine ) {
 	if ( !Com_AddStartupCommands() ) {
 		// if the user didn't give any commands, run default action
 		if ( !com_dedicated->integer ) {
-#ifdef CINEMATICS_LOGO
-			Cbuf_AddText ("cinematic " CINEMATICS_LOGO "\n");
-#endif
-#ifdef CINEMATICS_INTRO
-			if( !com_introPlayed->integer ) {
+			if (!is_oa)
+				Cbuf_AddText ("cinematic " CINEMATICS_LOGO "\n");
+			if(!is_oa && !com_introPlayed->integer ) {
 				Cvar_Set( com_introPlayed->name, "1" );
 				Cvar_Set( "nextmap", "cinematic " CINEMATICS_INTRO );
 			}
-#endif
 		}
 	}
 
@@ -2962,8 +2955,8 @@ void Com_WriteConfiguration( void ) {
 	Com_WriteConfigToFile( Q3CONFIG_CFG );
 
 	// not needed for dedicated or standalone
-#if !defined(DEDICATED) && !defined(STANDALONE)
-	if(!com_standalone->integer)
+#if !defined(DEDICATED)
+	if(!is_standalone && !com_standalone->integer)
 	{
 		const char *gamedir;
 		gamedir = Cvar_VariableString( "fs_game" );

@@ -25,52 +25,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
+extern char *BASEGAME;
 
-#ifdef STANDALONE
+extern char is_oa;
+extern char is_standalone;
 
-// OpenArena
-# ifdef OPENARENA
-  #define PRODUCT_NAME				"ioq3+oa"
-  #define BASEGAME					"baseoa"
-  #define CLIENT_WINDOW_TITLE		"OpenArena"
-  #define CLIENT_WINDOW_MIN_TITLE	"OA"
-  #define HOMEPATH_NAME_UNIX		".openarena"
-  #define HOMEPATH_NAME_WIN			"OpenArena"
-  #define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
-  #define GAMENAME_FOR_MASTER		"Quake3Arena"	// must NOT contain whitespace
-  #define LEGACY_PROTOCOL	1 // You probably don't need this for your standalone game
-# endif
-
-// Q3Rally
-# ifdef Q3RALLY
-  #define PRODUCT_NAME				"Q3Rally"
-  #define BASEGAME					"baseq3r"
-  #define CLIENT_WINDOW_TITLE		"Q3Rally"
-  #define CLIENT_WINDOW_MIN_TITLE	"Q3R"
-  #define HOMEPATH_NAME_UNIX		".q3rally"
-  #define HOMEPATH_NAME_WIN			"Q3Rally"
-  #define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
-  #define GAMENAME_FOR_MASTER		"Q3Rally"	// must NOT contain whitespace
-  #define CINEMATICS_LOGO		"idlogo.roq"
-  #define CINEMATICS_INTRO		"intro.roq"
-# endif
-
-#else
-  #define PRODUCT_NAME				"ioq3"
-  #define BASEGAME					"baseq3"
-  #define CLIENT_WINDOW_TITLE		"ioquake3"
-  #define CLIENT_WINDOW_MIN_TITLE	"ioq3"
-  #define HOMEPATH_NAME_UNIX		".q3a"
-  #define HOMEPATH_NAME_WIN			"Quake3"
-  #define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
-  #define STEAMPATH_NAME			"Quake 3 Arena"
-  #define STEAMPATH_APPID			"2200"
-  #define GOGPATH_ID				"1441704920"
-  #define GAMENAME_FOR_MASTER		"Quake3Arena"
-  #define CINEMATICS_LOGO		"idlogo.RoQ"
-  #define CINEMATICS_INTRO		"intro.RoQ"
-  #define LEGACY_PROTOCOL
-#endif
+#define PRODUCT_NAME				"ioq3"
+#define CLIENT_WINDOW_TITLE		"ioquake3"
+#define CLIENT_WINDOW_MIN_TITLE	"ioq3"
+#define HOMEPATH_NAME_UNIX		".q3a"
+#define HOMEPATH_NAME_WIN			"Quake3"
+#define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
+#define STEAMPATH_NAME			"Quake 3 Arena"
+#define STEAMPATH_APPID			"2200"
+#define GOGPATH_ID				"1441704920"
+#define GAMENAME_FOR_MASTER		"Quake3Arena"
+#define CINEMATICS_LOGO		"idlogo.RoQ"
+#define CINEMATICS_INTRO		"intro.RoQ"
+#define LEGACY_PROTOCOL
 
 // Heartbeat for dpmaster protocol. You shouldn't change this unless you know what you're doing
 #define HEARTBEAT_FOR_MASTER		"DarkPlaces"

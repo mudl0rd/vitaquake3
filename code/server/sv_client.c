@@ -144,64 +144,63 @@ void SV_GetChallenge(netadr_t from)
 	challenge->wasrefused = qfalse;
 	challenge->time = svs.time;
 
-#ifndef STANDALONE
-	// Drop the authorize stuff if this client is coming in via v6 as the auth server does not support ipv6.
-	// Drop also for addresses coming in on local LAN and for stand-alone games independent from id's assets.
-	if(challenge->adr.type == NA_IP && !com_standalone->integer && !Sys_IsLANAddress(from))
-	{
-		// look up the authorize server's IP
-		if (svs.authorizeAddress.type == NA_BAD)
+	if (!is_standalone) {
+		// Drop the authorize stuff if this client is coming in via v6 as the auth server does not support ipv6.
+		// Drop also for addresses coming in on local LAN and for stand-alone games independent from id's assets.
+		if(challenge->adr.type == NA_IP && !com_standalone->integer && !Sys_IsLANAddress(from))
 		{
-			Com_Printf( "Resolving %s\n", AUTHORIZE_SERVER_NAME );
-			
-			if (NET_StringToAdr(AUTHORIZE_SERVER_NAME, &svs.authorizeAddress, NA_IP))
+			// look up the authorize server's IP
+			if (svs.authorizeAddress.type == NA_BAD)
 			{
-				svs.authorizeAddress.port = BigShort( PORT_AUTHORIZE );
-				Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
-					svs.authorizeAddress.ip[0], svs.authorizeAddress.ip[1],
-					svs.authorizeAddress.ip[2], svs.authorizeAddress.ip[3],
-					BigShort( svs.authorizeAddress.port ) );
+				Com_Printf( "Resolving %s\n", AUTHORIZE_SERVER_NAME );
+
+				if (NET_StringToAdr(AUTHORIZE_SERVER_NAME, &svs.authorizeAddress, NA_IP))
+				{
+					svs.authorizeAddress.port = BigShort( PORT_AUTHORIZE );
+					Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
+						svs.authorizeAddress.ip[0], svs.authorizeAddress.ip[1],
+						svs.authorizeAddress.ip[2], svs.authorizeAddress.ip[3],
+						BigShort( svs.authorizeAddress.port ) );
+				}
 			}
-		}
 
-		// we couldn't contact the auth server, let them in.
-		if(svs.authorizeAddress.type == NA_BAD)
-			Com_Printf("Couldn't resolve auth server address\n");
+			// we couldn't contact the auth server, let them in.
+			if(svs.authorizeAddress.type == NA_BAD)
+				Com_Printf("Couldn't resolve auth server address\n");
 
-		// if they have been challenging for a long time and we
-		// haven't heard anything from the authorize server, go ahead and
-		// let them in, assuming the id server is down
-		else if(svs.time - oldestClientTime > AUTHORIZE_TIMEOUT)
-			Com_DPrintf( "authorize server timed out\n" );
-		else
-		{
-			// otherwise send their ip to the authorize server
-			const char *game;
+			// if they have been challenging for a long time and we
+			// haven't heard anything from the authorize server, go ahead and
+			// let them in, assuming the id server is down
+			else if(svs.time - oldestClientTime > AUTHORIZE_TIMEOUT)
+				Com_DPrintf( "authorize server timed out\n" );
+			else
+			{
+				// otherwise send their ip to the authorize server
+				const char *game;
 
-			Com_DPrintf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
+				Com_DPrintf( "sending getIpAuthorize for %s\n", NET_AdrToString( from ));
 		
-			game = Cvar_VariableString( "fs_game" );
-			if (game[0] == 0) {
-				game = BASEGAME;
+				game = Cvar_VariableString( "fs_game" );
+				if (game[0] == 0) {
+					game = BASEGAME;
+				}
+			
+				// the 0 is for backwards compatibility with obsolete sv_allowanonymous flags
+				// getIpAuthorize <challenge> <IP> <game> 0 <auth-flag>
+				NET_OutOfBandPrint( NS_SERVER, svs.authorizeAddress,
+					"getIpAuthorize %i %i.%i.%i.%i %s 0 %s",  challenge->challenge,
+					from.ip[0], from.ip[1], from.ip[2], from.ip[3], game, sv_strictAuth->string );
+			
+				return;
 			}
-			
-			// the 0 is for backwards compatibility with obsolete sv_allowanonymous flags
-			// getIpAuthorize <challenge> <IP> <game> 0 <auth-flag>
-			NET_OutOfBandPrint( NS_SERVER, svs.authorizeAddress,
-				"getIpAuthorize %i %i.%i.%i.%i %s 0 %s",  challenge->challenge,
-				from.ip[0], from.ip[1], from.ip[2], from.ip[3], game, sv_strictAuth->string );
-			
-			return;
 		}
 	}
-#endif
 
 	challenge->pingTime = svs.time;
 	NET_OutOfBandPrint(NS_SERVER, challenge->adr, "challengeResponse %d %d %d",
 			   challenge->challenge, clientChallenge, com_protocol->integer);
 }
 
-#ifndef STANDALONE
 /*
 ====================
 SV_AuthorizeIpPacket
@@ -275,7 +274,6 @@ void SV_AuthorizeIpPacket( netadr_t from ) {
 	// clear the challenge record so it won't timeout and let them through
 	Com_Memset( challengeptr, 0, sizeof(*challengeptr) );
 }
-#endif
 
 /*
 ==================
@@ -940,9 +938,7 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg)
 	if(!cl->download)
 	{
 		qboolean idPack = qfalse;
-		#ifndef STANDALONE
 		qboolean missionPack = qfalse;
-		#endif
 	
  		// Chop off filename extension.
 		Com_sprintf(pakbuf, sizeof(pakbuf), "%s", cl->downloadName);
@@ -970,10 +966,10 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg)
 
 						// now that we know the file is referenced,
 						// check whether it's legal to download it.
-#ifndef STANDALONE
-						missionPack = FS_idPak(pakbuf, BASETA, NUM_TA_PAKS);
-						idPack = missionPack;
-#endif
+						if (!is_standalone) {
+							missionPack = FS_idPak(pakbuf, BASETA, NUM_TA_PAKS);
+							idPack = missionPack;
+						}
 						idPack = idPack || FS_idPak(pakbuf, BASEGAME, NUM_ID_PAKS);
 
 						break;
@@ -997,14 +993,12 @@ int SV_WriteDownloadToClient(client_t *cl, msg_t *msg)
 			}
 			else if (idPack) {
 				Com_Printf("clientDownload: %d : \"%s\" cannot download id pk3 files\n", (int) (cl - svs.clients), cl->downloadName);
-#ifndef STANDALONE
-				if(missionPack)
+				if(!is_standalone && missionPack)
 				{
 					Com_sprintf(errorMessage, sizeof(errorMessage), "Cannot autodownload Team Arena file \"%s\"\n"
 									"The Team Arena mission pack can be found in your local game store.", cl->downloadName);
 				}
 				else
-#endif
 				{
 					Com_sprintf(errorMessage, sizeof(errorMessage), "Cannot autodownload id pk3 file \"%s\"", cl->downloadName);
 				}

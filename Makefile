@@ -40,11 +40,7 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 endif
 
 CORE_DIR    += .
-ifeq ($(basegame),oa)
-TARGET_NAME := vitaquake3-oa
-else
 TARGET_NAME := vitaquake3
-endif
 LIBM		    = -lm
 
 ifeq ($(ARCHFLAGS),)
@@ -190,10 +186,6 @@ endif
 
 CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) -DRELEASE -DUSE_ICON -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -fno-short-enums -fsigned-char
 CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic) -fpermissive
-
-ifeq ($(basegame), oa)
-CFLAGS   += -DSTANDALONE -DOPENARENA
-endif
 
 ifeq ($(platform), unix)
 CFLAGS += -std=gnu99

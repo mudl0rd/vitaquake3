@@ -638,19 +638,18 @@ CLUI_GetCDKey
 ====================
 */
 static void CLUI_GetCDKey( char *buf, int buflen ) {
-#ifndef STANDALONE
-	const char *gamedir;
-	gamedir = Cvar_VariableString( "fs_game" );
-	if (UI_usesUniqueCDKey() && gamedir[0] != 0) {
-		Com_Memcpy( buf, &cl_cdkey[16], 16);
-		buf[16] = 0;
-	} else {
-		Com_Memcpy( buf, cl_cdkey, 16);
-		buf[16] = 0;
-	}
-#else
-	*buf = 0;
-#endif
+	if (!is_standalone) {
+		const char *gamedir;
+		gamedir = Cvar_VariableString( "fs_game" );
+		if (UI_usesUniqueCDKey() && gamedir[0] != 0) {
+			Com_Memcpy( buf, &cl_cdkey[16], 16);
+			buf[16] = 0;
+		} else {
+			Com_Memcpy( buf, cl_cdkey, 16);
+			buf[16] = 0;
+		}
+	} else
+		*buf = 0;
 }
 
 
@@ -659,7 +658,6 @@ static void CLUI_GetCDKey( char *buf, int buflen ) {
 CLUI_SetCDKey
 ====================
 */
-#ifndef STANDALONE
 static void CLUI_SetCDKey( char *buf ) {
 	const char *gamedir;
 	gamedir = Cvar_VariableString( "fs_game" );
@@ -674,7 +672,6 @@ static void CLUI_SetCDKey( char *buf ) {
 		cvar_modifiedFlags |= CVAR_ARCHIVE;
 	}
 }
-#endif
 
 /*
 ====================
@@ -984,9 +981,8 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return 0;
 
 	case UI_SET_CDKEY:
-#ifndef STANDALONE
-		CLUI_SetCDKey( VMA(1) );
-#endif
+		if (!is_standalone)
+			CLUI_SetCDKey( VMA(1) );
 		return 0;
 	
 	case UI_SET_PBCLSTATUS:
@@ -1142,7 +1138,6 @@ void CL_InitUI( void ) {
 	}
 }
 
-#ifndef STANDALONE
 qboolean UI_usesUniqueCDKey( void ) {
 	if (uivm) {
 		return (VM_Call( uivm, UI_HASUNIQUECDKEY) == qtrue);
@@ -1150,7 +1145,6 @@ qboolean UI_usesUniqueCDKey( void ) {
 		return qfalse;
 	}
 }
-#endif
 
 /*
 ====================

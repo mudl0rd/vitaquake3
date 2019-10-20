@@ -1587,7 +1587,6 @@ If no response is received from the authorize server after two tries, the client
 in anyway.
 ===================
 */
-#ifndef STANDALONE
 void CL_RequestAuthorization( void ) {
 	char	nums[64];
 	int		i, j, l;
@@ -1631,7 +1630,7 @@ void CL_RequestAuthorization( void ) {
 
 	NET_OutOfBandPrint(NS_CLIENT, cls.authorizeServer, "getKeyAuthorize %i %s", fs->integer, nums );
 }
-#endif
+
 /*
 ======================================================================
 
@@ -2360,10 +2359,8 @@ void CL_CheckForResend( void ) {
 	switch ( clc.state ) {
 	case CA_CONNECTING:
 		// requesting a challenge .. IPv6 users always get in as authorize server supports no ipv6.
-#ifndef STANDALONE
-		if (!com_standalone->integer && clc.serverAddress.type == NA_IP && !Sys_IsLANAddress( clc.serverAddress ) )
+		if (!is_standalone && !com_standalone->integer && clc.serverAddress.type == NA_IP && !Sys_IsLANAddress( clc.serverAddress ) )
 			CL_RequestAuthorization();
-#endif
 
 		// The challenge request shall be followed by a client challenge so no malicious server can hijack this connection.
 		// Add the gamename so the server knows we're running the correct game or can reject the client
@@ -4645,9 +4642,9 @@ CL_CDKeyValidate
 =================
 */
 qboolean CL_CDKeyValidate( const char *key, const char *checksum ) {
-#ifdef STANDALONE
-	return qtrue;
-#else
+	if (is_standalone)
+		return qtrue;
+	
 	char	ch;
 	byte	sum;
 	char	chs[3];
@@ -4704,5 +4701,4 @@ qboolean CL_CDKeyValidate( const char *key, const char *checksum ) {
 	}
 
 	return qfalse;
-#endif
 }

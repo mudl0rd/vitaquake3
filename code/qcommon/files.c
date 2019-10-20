@@ -174,7 +174,6 @@ or configs will never get loaded from disk!
 
 // every time a new demo pk3 file is built, this checksum must be updated.
 // the easiest way to get it is to just run the game and see what it spits out
-#ifndef STANDALONE
 #define	DEMO_PAK0_CHECKSUM	2985612116u
 static const unsigned int pak_checksums[] = {
 	1566731103u,
@@ -195,7 +194,6 @@ static const unsigned int missionpak_checksums[] =
 	2662638993u,
 	1438664554u
 };
-#endif
 
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present.  This is only used for our
@@ -3136,9 +3134,7 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring ) {
 
 		// never autodownload any of the id paks
 		if(FS_idPak(fs_serverReferencedPakNames[i], BASEGAME, NUM_ID_PAKS)
-#ifndef STANDALONE
-				|| FS_idPak(fs_serverReferencedPakNames[i], BASETA, NUM_TA_PAKS)
-#endif
+				|| (!is_standalone && FS_idPak(fs_serverReferencedPakNames[i], BASETA, NUM_TA_PAKS))
 			)
 		{
 			continue;
@@ -3266,10 +3262,8 @@ void FS_Shutdown( qboolean closemfp ) {
 #endif
 }
 
-#ifndef STANDALONE
 void Com_AppendCDKey( const char *filename );
 void Com_ReadCDKey( const char *filename );
-#endif
 
 /*
 ================
@@ -3414,14 +3408,12 @@ static void FS_Startup( const char *gameName )
 		}
 	}
 
-#ifndef STANDALONE
-	if (!com_standalone->integer) {
+	if (!is_standalone && !com_standalone->integer) {
 		Com_ReadCDKey(BASEGAME);
 		if (fs_gamedirvar->string[0]) {
 			Com_AppendCDKey(fs_gamedirvar->string);
 		}
 	}
-#endif
 
 	// add our commands
 	Cmd_AddCommand ("path", FS_Path_f);
@@ -3449,7 +3441,6 @@ static void FS_Startup( const char *gameName )
 	Com_Printf( "%d files in pk3 files\n", fs_packFiles );
 }
 
-#ifndef STANDALONE
 /*
 ===================
 FS_CheckPak0
@@ -3496,7 +3487,7 @@ static void FS_CheckPak0( void )
 				{
 					Com_Printf("\n\n"
 							"**************************************************\n"
-							"WARNING: " BASEGAME "/pak0.pk3 is present but its checksum (%u)\n"
+							"WARNING: pak0.pk3 is present but its checksum (%u)\n"
 							"is not correct. Please re-copy pak0.pk3 from your\n"
 							"legitimate Q3 CDROM.\n"
 							"**************************************************\n\n\n",
@@ -3506,7 +3497,7 @@ static void FS_CheckPak0( void )
 				{
 					Com_Printf("\n\n"
 							"**************************************************\n"
-							"WARNING: " BASEGAME "/pak%d.pk3 is present but its checksum (%u)\n"
+							"WARNING: pak%d.pk3 is present but its checksum (%u)\n"
 							"is not correct. Please re-install the point release\n"
 							"**************************************************\n\n\n",
 							pakBasename[3]-'0', curpack->checksum );
@@ -3647,7 +3638,6 @@ static void FS_CheckPak0( void )
 		Com_Error(ERR_FATAL, "%s", errorText);
 	}
 }
-#endif
 
 /*
 =====================
@@ -3993,9 +3983,8 @@ void FS_InitFilesystem( void ) {
 	// try to start up normally
 	FS_Startup(com_basegame->string);
 
-#ifndef STANDALONE
-	FS_CheckPak0( );
-#endif
+	if (!is_standalone)
+		FS_CheckPak0( );
 
 	// if we can't find default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable
@@ -4031,9 +4020,8 @@ void FS_Restart( int checksumFeed ) {
 	// try to start up normally
 	FS_Startup(com_basegame->string);
 
-#ifndef STANDALONE
-	FS_CheckPak0( );
-#endif
+	if (!is_standalone)
+		FS_CheckPak0( );
 
 	// if we can't find default.cfg, assume that the paths are
 	// busted and error out now, rather than getting an unreadable

@@ -40,6 +40,8 @@ static int16_t audio_buffer[BUFFER_SIZE];
 
 int scr_width = 960, scr_height = 544;
 
+char *BASEGAME;
+
 void ( APIENTRY * qglBlendFunc )(GLenum sfactor, GLenum dfactor);
 void ( APIENTRY * qglTexImage2D )(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
 void ( APIENTRY * qglTexParameteri )(GLenum target, GLenum pname, GLint param);
@@ -1070,8 +1072,10 @@ static void audio_callback(void)
 	}
 }
 
-bool is_missionpack = false;
-bool is_urt = false;
+char is_missionpack = false;
+char is_urt = false;
+char is_standalone = false;
+char is_oa = false;
 
 bool retro_load_game(const struct retro_game_info *info)
 {
@@ -1160,11 +1164,19 @@ bool retro_load_game(const struct retro_game_info *info)
 
 	extract_directory(g_rom_dir, g_rom_dir, sizeof(g_rom_dir));
 	
+	BASEGAME = (char*)malloc(256);
+	
 	if (strstr(path_lower, "missionpack"))
 		is_missionpack = true;
 	
 	if (strstr(path_lower, "q3ut4"))
 		is_urt = true;
+	
+	if (strstr(path_lower, "baseoa")) {
+		is_oa = true;
+		is_standalone = true;
+		sprintf(BASEGAME, "baseoa");
+	} else sprintf(BASEGAME, "baseq3");
 	
 	Sys_SetBinaryPath(g_rom_dir);
     Sys_SetDefaultInstallPath(g_rom_dir);

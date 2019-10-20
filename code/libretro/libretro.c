@@ -290,7 +290,6 @@ static bool context_needs_reinit = true;
 static bool initialize_gl()
 {
 	funcs[0].ptr  = qglTexImage2D         = hw_render.get_proc_address ("glTexImage2D");
-	funcs[1].ptr  = qglTexSubImage2D      = hw_render.get_proc_address ("glTexSubImage2D");
 	funcs[2].ptr  = qglTexParameteri      = hw_render.get_proc_address ("glTexParameteri");
 	funcs[3].ptr  = qglBindFramebuffer    = hw_render.get_proc_address ("glBindFramebuffer");
 	funcs[4].ptr  = qglGenerateMipmap     = hw_render.get_proc_address ("glGenerateMipmap");

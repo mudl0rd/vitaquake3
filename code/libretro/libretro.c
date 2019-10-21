@@ -894,7 +894,7 @@ void retro_get_system_info(struct retro_system_info *info)
 #endif
    info->library_version  = "v0.8" ;
    info->need_fullpath    = true;
-   info->valid_extensions = "pk3";
+   info->valid_extensions = "pk3|pak";
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)

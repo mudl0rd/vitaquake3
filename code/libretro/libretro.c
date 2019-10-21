@@ -889,12 +889,9 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
    info->library_name     = "vitaQuakeIII";
-#ifndef GIT_VERSION
-#define GIT_VERSION ""
-#endif
    info->library_version  = "v0.8" ;
    info->need_fullpath    = true;
-   info->valid_extensions = "pk3|pak";
+   info->valid_extensions = "pk3";
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
@@ -1075,6 +1072,7 @@ char is_missionpack = false;
 char is_urt = false;
 char is_standalone = false;
 char is_oa = false;
+char is_rally = false;
 
 bool retro_load_game(const struct retro_game_info *info)
 {
@@ -1175,6 +1173,10 @@ bool retro_load_game(const struct retro_game_info *info)
 		is_oa = true;
 		is_standalone = true;
 		sprintf(BASEGAME, "baseoa");
+	} else if (strstr(path_lower, "baseq3r")) {
+		is_rally = true;
+		is_standalone = true;
+		sprintf(BASEGAME, "baseq3r");
 	} else sprintf(BASEGAME, "baseq3");
 	
 	Sys_SetBinaryPath(g_rom_dir);
@@ -1209,6 +1211,9 @@ void retro_run(void)
 		} else if (is_urt) {
 			sprintf(commandLine, "+set fs_game q3ut4");
 			printf("Launching Urban Terror...\n");
+		} else if (is_rally) {
+			sprintf(commandLine, "+set fs_game baseq3r");
+			printf("Launching Q3 Rally...\n");
 		}
 		Com_Init(commandLine);
 		NET_Init();

@@ -1948,7 +1948,7 @@ void GLimp_Init( qboolean coreContext)
 	}else if (glConfig.vidWidth != cur_width){ // Changed resolution in game, restarting the game
 
 	}
-	indices = (uint16_t*)malloc(sizeof(uint16_t*)*MAX_INDICES);
+	indices = (uint16_t*)malloc(sizeof(uint16_t)*MAX_INDICES);
 	for (i=0;i<MAX_INDICES;i++){
 		indices[i] = i;
 	}

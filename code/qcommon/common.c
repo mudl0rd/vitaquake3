@@ -2537,10 +2537,11 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 	fileHandle_t	f;
 	char			fbuffer[MAX_OSPATH];
 	char			key[17];
+#ifndef SWITCH
 #ifndef _WIN32
 	mode_t			savedumask;
 #endif
-
+#endif
 
 	Com_sprintf(fbuffer, sizeof(fbuffer), "%s/q3key", filename);
 
@@ -2550,9 +2551,10 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 	if(!CL_CDKeyValidate(key, NULL) ) {
 		return;
 	}
-
+#ifndef SWITCH
 #ifndef _WIN32
 	savedumask = umask(0077);
+#endif
 #endif
 	f = FS_SV_FOpenFileWrite( fbuffer );
 	if ( !f ) {
@@ -2568,11 +2570,12 @@ static void Com_WriteCDKey( const char *filename, const char *ikey ) {
 
 	FS_FCloseFile( f );
 out:
+#ifndef SWITCH
 #ifndef _WIN32
-	umask(savedumask);
-#else
-	;
+	umask(savedumask)
 #endif
+#endif
+	;
 }
 #endif
 

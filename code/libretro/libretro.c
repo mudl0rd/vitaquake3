@@ -16,19 +16,7 @@
 #include "../client/client.h"
 #include "../client/snd_local.h"
 
-#if defined(HAVE_PSGL)
-#define RARCH_GL_FRAMEBUFFER GL_FRAMEBUFFER_OES
-#define RARCH_GL_FRAMEBUFFER_COMPLETE GL_FRAMEBUFFER_COMPLETE_OES
-#define RARCH_GL_COLOR_ATTACHMENT0 GL_COLOR_ATTACHMENT0_EXT
-#elif defined(OSX_PPC)
-#define RARCH_GL_FRAMEBUFFER GL_FRAMEBUFFER_EXT
-#define RARCH_GL_FRAMEBUFFER_COMPLETE GL_FRAMEBUFFER_COMPLETE_EXT
-#define RARCH_GL_COLOR_ATTACHMENT0 GL_COLOR_ATTACHMENT0_EXT
-#else
-#define RARCH_GL_FRAMEBUFFER GL_FRAMEBUFFER
-#define RARCH_GL_FRAMEBUFFER_COMPLETE GL_FRAMEBUFFER_COMPLETE
-#define RARCH_GL_COLOR_ATTACHMENT0 GL_COLOR_ATTACHMENT0
-#endif
+#include <glsm/glsm.h>
 
 #define SAMPLE_RATE   	48000
 #define BUFFER_SIZE 	32768
@@ -114,7 +102,7 @@ api_entry funcs[GL_FUNCS_NUM];
 
 char g_rom_dir[1024], g_pak_path[1024], g_save_dir[1024];
 
-static struct retro_hw_render_callback hw_render;
+extern struct retro_hw_render_callback hw_render;
 
 void vglVertexPointerMapped(const GLvoid *pointer) {
 	qglVertexPointer(3, GL_FLOAT, 0, pointer);
@@ -344,7 +332,7 @@ static bool initialize_gl()
 	if (log_cb) {
 		int i;
 		for (i = 0; i < GL_FUNCS_NUM; i++) {
-			if (!funcs[i].ptr) log_cb(RETRO_LOG_ERROR, "vitaQuakeII: cannot get GL function #%d symbol.\n", i);
+			if (!funcs[i].ptr) log_cb(RETRO_LOG_ERROR, "vitaQuakeIII: cannot get GL function #%d symbol.\n", i);
 		}
 	}
 	
@@ -374,6 +362,11 @@ extern void CL_Vid_Restart_f( void );
 static void context_reset() { 
 	if (!context_needs_reinit)
 		return;
+	
+	glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, NULL);
+	
+	if (!glsm_ctl(GLSM_CTL_STATE_SETUP, NULL))
+		return;
 
 	initialize_gl();
 	if (!first_reset) {
@@ -381,6 +374,39 @@ static void context_reset() {
 	}
 	first_reset = false;
 	context_needs_reinit = false;
+}
+
+static bool context_framebuffer_lock(void *data)
+{
+    return false;
+}
+
+bool initialize_opengl(void)
+{
+   glsm_ctx_params_t params = {0};
+
+   params.context_type     = RETRO_HW_CONTEXT_OPENGL;
+   params.context_reset    = context_reset;
+   params.context_destroy  = context_destroy;
+   params.environ_cb       = environ_cb;
+   params.stencil          = true;
+   params.framebuffer_lock = context_framebuffer_lock;
+
+   if (!glsm_ctl(GLSM_CTL_STATE_CONTEXT_INIT, &params))
+   {
+      log_cb(RETRO_LOG_ERROR, "Could not setup glsm.\n");
+      return false;
+   }
+
+   return true;
+}
+
+void destroy_opengl(void)
+{
+   if (!glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, NULL))
+   {
+      log_cb(RETRO_LOG_ERROR, "Could not destroy glsm context.\n");
+   }
 }
 
 /* con.c */
@@ -901,8 +927,8 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
    info->geometry.base_width   = scr_width;
    info->geometry.base_height  = scr_height;
-   info->geometry.max_width    = 3840;
-   info->geometry.max_height   = 2160;
+   info->geometry.max_width    = scr_width;
+   info->geometry.max_height   = scr_height;
    info->geometry.aspect_ratio = (scr_width * 1.0f) / (scr_height * 1.0f);
 }
 
@@ -1084,14 +1110,7 @@ bool retro_load_game(const struct retro_game_info *info)
 		return false;
 	}
 
-	hw_render.context_type    = RETRO_HW_CONTEXT_OPENGL;
-	hw_render.context_reset   = context_reset;
-	hw_render.context_destroy = context_destroy;
-	hw_render.bottom_left_origin = true;
-	hw_render.depth = true;
-	hw_render.stencil = true;
-
-	if (!environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
+	if (!initialize_opengl())
 	{
 		if (log_cb)
 			log_cb(RETRO_LOG_ERROR, "vitaQuakeIII: libretro frontend doesn't have OpenGL support.\n");
@@ -1189,6 +1208,7 @@ bool first_boot = true;
 
 void retro_run(void)
 {
+	glsm_ctl(GLSM_CTL_STATE_BIND, NULL);
 	qglBindFramebuffer(RARCH_GL_FRAMEBUFFER, hw_render.get_current_framebuffer());
 	qglEnable(GL_TEXTURE_2D);
 	qglEnableClientState(GL_VERTEX_ARRAY);
@@ -1227,6 +1247,7 @@ void retro_run(void)
 		update_variables(false);
 	
 	Com_Frame();
+	glsm_ctl(GLSM_CTL_STATE_UNBIND, NULL);
 	
 	audio_process();
 	audio_callback();
@@ -1982,7 +2003,9 @@ Responsible for doing a swapbuffers
 */
 void GLimp_EndFrame( void )
 {
+	glsm_ctl(GLSM_CTL_STATE_UNBIND, NULL);
 	video_cb(RETRO_HW_FRAME_BUFFER_VALID, scr_width, scr_height, 0);
+	glsm_ctl(GLSM_CTL_STATE_BIND, NULL);
 	gVertexBuffer = gVertexBufferPtr;
 	gColorBuffer = gColorBufferPtr;
 	gTexCoordBuffer = gTexCoordBufferPtr;
@@ -2247,7 +2270,9 @@ void IN_Restart( void )
 }
 
 /* net.c */
+#ifndef SWITCH
 typedef unsigned short	sa_family_t;
+#endif
 
 #ifndef SOCKET_ERROR
 typedef int SOCKET;
@@ -2434,10 +2459,11 @@ Sys_SockaddrToString
 static void Sys_SockaddrToString(char *dest, int destlen, struct sockaddr *input)
 {
 	socklen_t inputlen;
-
+#ifndef SWITCH
 	if (input->sa_family == AF_INET6)
 		inputlen = sizeof(struct sockaddr_in6);
 	else
+#endif
 		inputlen = sizeof(struct sockaddr_in);
 
 	if(getnameinfo(input, inputlen, dest, destlen, NULL, 0, NI_NUMERICHOST) && destlen > 0)
@@ -2827,7 +2853,7 @@ SOCKET NET_IPSocket( char *net_interface, int port, int *err ) {
 		Com_Printf( "Opening IP socket: 0.0.0.0:%i\n", port );
 	}
 
-	if( ( newsocket = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP ) ) == INVALID_SOCKET ) {
+	if( ( newsocket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP ) ) == INVALID_SOCKET ) {
 		*err = socketError;
 		Com_Printf( "WARNING: NET_IPSocket: socket: %s\n", NET_ErrorString() );
 		return newsocket;

@@ -113,7 +113,11 @@ extern uint16_t *indices;
 
 #else
 
+#ifdef SWITCH
+#include <glsym/switch/nx_gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 #define APIENTRY
 

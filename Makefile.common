@@ -19,7 +19,7 @@ INCLUDES   :=  $(CORE_DIR)/code/renderercommon \
 					$(CORE_DIR)/code/renderergl1 \
 					$(CORE_DIR)/code/libretro \
 					$(CORE_DIR)/code/sys \
-				   $(CORE_DIR)/code/jpeg-8c \
+					$(CORE_DIR)/code/jpeg-8c \
 					$(LIBRETRO_COMM_DIR)/include \
 					$(CORE_DIR)/code/zlib
 
@@ -40,6 +40,9 @@ SYSTEM = 	$(LIBRETRO_COMM_DIR)/file/retro_dirent.c \
 				$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
 				$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c \
 				$(LIBRETRO_COMM_DIR)/net/net_compat.c \
-				$(LIBRETRO_COMM_DIR)/net/net_socket.c
-
+				$(LIBRETRO_COMM_DIR)/net/net_socket.c \
+				$(LIBRETRO_COMM_DIR)/glsym/rglgen.c \
+				$(LIBRETRO_COMM_DIR)/glsym/glsym_gl.c \
+				$(LIBRETRO_COMM_DIR)/glsm/glsm.c
+				
 SOURCES_C  += $(SYSTEM)

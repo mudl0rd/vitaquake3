@@ -25,6 +25,7 @@ int framerate = 165;
 static int invert_y_axis = 1;
 static unsigned audio_buffer_ptr;
 static int16_t audio_buffer[BUFFER_SIZE];
+static bool libretro_shared_context = false;
 
 int scr_width = 960, scr_height = 544;
 
@@ -364,9 +365,10 @@ static void context_reset() {
 		return;
 	
 	glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, NULL);
-	
-	if (!glsm_ctl(GLSM_CTL_STATE_SETUP, NULL))
-		return;
+
+   if (!libretro_shared_context)
+      if (!glsm_ctl(GLSM_CTL_STATE_SETUP, NULL))
+         return;
 
 	initialize_gl();
 	if (!first_reset) {
@@ -398,6 +400,11 @@ bool initialize_opengl(void)
       return false;
    }
 
+   if (environ_cb(RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT, NULL))
+      libretro_shared_context = true;
+   else
+      libretro_shared_context = false;
+
    return true;
 }
 
@@ -407,6 +414,8 @@ void destroy_opengl(void)
    {
       log_cb(RETRO_LOG_ERROR, "Could not destroy glsm context.\n");
    }
+
+   libretro_shared_context = false;
 }
 
 /* con.c */
@@ -1208,7 +1217,8 @@ bool first_boot = true;
 
 void retro_run(void)
 {
-	glsm_ctl(GLSM_CTL_STATE_BIND, NULL);
+   if (!libretro_shared_context)
+      glsm_ctl(GLSM_CTL_STATE_BIND, NULL);
 	qglBindFramebuffer(RARCH_GL_FRAMEBUFFER, hw_render.get_current_framebuffer());
 	qglEnable(GL_TEXTURE_2D);
 	qglEnableClientState(GL_VERTEX_ARRAY);
@@ -1247,7 +1257,8 @@ void retro_run(void)
 		update_variables(false);
 	
 	Com_Frame();
-	glsm_ctl(GLSM_CTL_STATE_UNBIND, NULL);
+   if (!libretro_shared_context)
+      glsm_ctl(GLSM_CTL_STATE_UNBIND, NULL);
 	
 	audio_process();
 	audio_callback();
@@ -2003,11 +2014,13 @@ Responsible for doing a swapbuffers
 */
 void GLimp_EndFrame( void )
 {
-	glsm_ctl(GLSM_CTL_STATE_UNBIND, NULL);
+   if (!libretro_shared_context)
+      glsm_ctl(GLSM_CTL_STATE_UNBIND, NULL);
 	video_cb(RETRO_HW_FRAME_BUFFER_VALID, scr_width, scr_height, 0);
-	glsm_ctl(GLSM_CTL_STATE_BIND, NULL);
-	gVertexBuffer = gVertexBufferPtr;
-	gColorBuffer = gColorBufferPtr;
+   if (!libretro_shared_context)
+      glsm_ctl(GLSM_CTL_STATE_BIND, NULL);
+	gVertexBuffer   = gVertexBufferPtr;
+	gColorBuffer    = gColorBufferPtr;
 	gTexCoordBuffer = gTexCoordBufferPtr;
 }
 

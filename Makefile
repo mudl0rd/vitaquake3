@@ -113,15 +113,12 @@ else ifeq ($(platform), libnx)
     include $(DEVKITPRO)/libnx/switch_rules
     EXT=a
     TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
-    DEFINES := -DSWITCH=1 -U__linux__ -U__linux -DRARCH_INTERNAL
-    CFLAGS	:=	 $(DEFINES) -g -O3 \
-                 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
-    CFLAGS += $(INCDIRS) -I$(PORTLIBS)/include/
-    CFLAGS	+=	-D__SWITCH__ -DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
-    CXXFLAGS := $(ASFLAGS) $(CFLAGS) -fno-rtti -std=gnu++11
-    CFLAGS += -std=gnu11
+    DEFINES := -DSWITCH=1 -D__SWITCH__=1 -DHAVE_LIBNX=1
+    CFLAGS	:= $(INCDIRS) $(DEFINES) -g -fPIE -I$(LIBNX)/include/ -I$(PORTLIBS)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec
+    CFLAGS += -fvisibility=hidden
+    CFLAGS	+= -march=armv8-a -mtune=cortex-a57 -mtp=soft -mcpu=cortex-a57+crc+fp+simd
+    CXXFLAGS := $(ASFLAGS) $(CFLAGS) -std=gnu++11
     STATIC_LINKING = 1
-    HAVE_OPENGL = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
@@ -135,7 +132,7 @@ ifeq ($(DEBUG), 1)
    CFLAGS += -O0 -g -DDEBUG
    CXXFLAGS += -O0 -g -DDEBUG
 else
-   CFLAGS += -O3
+   CFLAGS += -O3 -DRELEASE
    CXXFLAGS += -O3
 endif
 
@@ -183,9 +180,13 @@ endif
 ifeq ($(COMPILE_ARCH),axp)
   COMPILE_ARCH=alpha
 endif
+ifeq ($(platform), libnx)
+  COMPILE_ARCH=aarch64
+endif
 
-CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) -DRELEASE -DUSE_ICON -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -fno-short-enums -fsigned-char
-CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic) -fpermissive
+CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) -DUSE_ICON -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" \
+	-DUSE_INTERNAL_JPEG
+CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic) -fpermissive -fno-rtti -fno-exceptions -std=gnu++11
 
 ifeq ($(platform), unix)
 CFLAGS += -std=gnu99

@@ -249,9 +249,7 @@ void QDECL Com_DPrintf( const char *fmt, ...) {
 	Q_vsnprintf( msg, sizeof ( msg ), fmt, argptr );
 	va_end( argptr );
 
-	FILE* f = fopen("ux0:data/ioq3/log.txt", "a+");
-	fwrite(msg, 1, strlen(msg), f);
-	fclose(f);
+	printf(msg);
 #endif
 }
 

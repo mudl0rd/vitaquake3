@@ -235,7 +235,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define ARCH_STRING "alpha"
 #endif
 
-#if BYTE_ORDER == BIG_ENDIAN
+#if (BYTE_ORDER == BIG_ENDIAN) && !defined(__SWITCH__)
 #define Q3_BIG_ENDIAN
 #else
 #define Q3_LITTLE_ENDIAN

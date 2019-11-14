@@ -1127,7 +1127,7 @@ bool retro_load_game(const struct retro_game_info *info)
 	}
 	
 	int i;
-	char *path_lower;
+	char path_lower[256];
 #if defined(_WIN32)
 	char slash = '\\';
 #else
@@ -1140,7 +1140,7 @@ bool retro_load_game(const struct retro_game_info *info)
 	if (!info)
 		return false;
 	
-	path_lower = strdup(info->path);
+	sprintf(path_lower, "%s", info->path);
 	
 	for (i=0; path_lower[i]; ++i)
 		path_lower[i] = tolower(path_lower[i]);

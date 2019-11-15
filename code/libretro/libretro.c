@@ -2412,10 +2412,18 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 	memset(&hints, '\0', sizeof(hints));
 
 	hintsp = &hints;
+#ifdef __SWITCH__
+	if (family == AF_UNSPEC) family = AF_INET;
+	hintsp->ai_flags = AI_ADDRCONFIG;
+#endif
 	hintsp->ai_family = family;
 	hintsp->ai_socktype = SOCK_DGRAM;
-	
+#ifdef __SWITCH__
+	// Since libnx is a smelling pile of shit, we need this
+	retval = getaddrinfo(s, "1234", hintsp, &res);
+#else
 	retval = getaddrinfo_retro(s, NULL, hintsp, &res);
+#endif
 
 	if(!retval)
 	{
@@ -2456,7 +2464,7 @@ static qboolean Sys_StringToSockaddr(const char *s, struct sockaddr *sadr, int s
 			Com_Printf("Sys_StringToSockaddr: Error resolving %s: No address of required type found.\n", s);
 	}
 	else
-		Com_Printf("Sys_StringToSockaddr: Error resolving %s: %s\n", s, gai_strerror(retval));
+		Com_Printf("Sys_StringToSockaddr: Error resolving %s: %s (errorcode: %d)\n", s, gai_strerror(retval), retval);
 	
 	if(res)
 		freeaddrinfo_retro(res);

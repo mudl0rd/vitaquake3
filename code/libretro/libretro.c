@@ -26,6 +26,7 @@ static int invert_y_axis = 1;
 static unsigned audio_buffer_ptr;
 static int16_t audio_buffer[BUFFER_SIZE];
 static bool libretro_shared_context = false;
+static bool widescreen_enabled      = false;
 
 int scr_width = 960, scr_height = 544;
 
@@ -854,10 +855,19 @@ static void update_variables(bool startup)
 
 		if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 		{
+         struct retro_system_av_info info;
 			if (strcmp(var.value, "disabled") == 0)
+         {
 				Cvar_SetValue("r_widescreen", 0);
+            widescreen_enabled = false;
+         }
 			else
+         {
 				Cvar_SetValue("r_widescreen", 1);
+            widescreen_enabled = true;
+         }
+         retro_get_system_av_info(&info);
+         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &info.geometry);
 		}
 		
 		var.key = "vitaquakeiii_pickups";
@@ -963,7 +973,10 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.base_height  = scr_height;
    info->geometry.max_width    = scr_width;
    info->geometry.max_height   = scr_height;
-   info->geometry.aspect_ratio = (scr_width * 1.0f) / (scr_height * 1.0f);
+   if (widescreen_enabled)
+      info->geometry.aspect_ratio = (16.9) / (9.0);
+   else
+      info->geometry.aspect_ratio = (scr_width * 1.0f) / (scr_height * 1.0f);
 }
 
 void retro_set_environment(retro_environment_t cb)

@@ -902,6 +902,8 @@ typedef struct {
 	shader_t				*flareShader;
 	shader_t				*sunShader;
 
+   shader_t				*overbrightShader;
+
 	int						numLightmaps;
 	image_t					**lightmaps;
 
@@ -1051,6 +1053,8 @@ extern	cvar_t	*r_anaglyphMode;
 extern	cvar_t	*r_greyscale;
 
 extern	cvar_t	*r_ignoreGLErrors;
+
+extern	cvar_t	*r_widescreen;
 
 extern	cvar_t	*r_overBrightBits;
 extern	cvar_t	*r_mapOverBrightBits;

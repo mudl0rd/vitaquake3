@@ -142,6 +142,7 @@ cvar_t  *r_noborder;
 cvar_t	*r_customwidth;
 cvar_t	*r_customheight;
 cvar_t	*r_customPixelAspect;
+cvar_t	*r_widescreen;
 
 cvar_t	*r_overBrightBits;
 cvar_t	*r_mapOverBrightBits;
@@ -235,16 +236,24 @@ vidmode_t r_vidModes[] =
 {
 	{ "Mode  0: 480x272",		480,	272,	1 },
 	{ "Mode  1: 640x368",		640,	368,	1 },
-	{ "Mode  2: 720x408",		720,	408,	1 },
-	{ "Mode  3: 960x544",		960,	544,	1 },
-	{ "Mode  4: 960x544",		960,	544,	1 },
-	{ "Mode  5: 960x544",		960,	544,	1 },
-	{ "Mode  6: 960x544",		960,	544,	1 },
-	{ "Mode  7: 960x544",		960,	544,	1 },
-	{ "Mode  8: 960x544",		960,	544,	1 },
-	{ "Mode  9: 960x544",		960,	544,	1 },
-	{ "Mode 10: 960x544",		960,	544,	1 },
-	{ "Mode 11: 960x544",		960,	544,	1 }
+	{ "Mode  2: 640x480",		640,	480,	1 },
+	{ "Mode  3: 720x408",		720,	408,	1 },
+	{ "Mode  4: 856x480",		856,	480,	1 },
+	{ "Mode  5: 800x600",		800,	600,	1 },
+   { "Mode  6: 960x544",		960,  544,	1 },
+	{ "Mode  7: 1024x768",		1024,	768, 	1 },
+	{ "Mode  8: 1152x864",		1152,	864,	1 },
+	{ "Mode  9: 1280x720",		1280,	720,	1 },
+	{ "Mode 10: 1152x864",		1152,	864,	1 },
+	{ "Mode 11: 1280x720",		1280,	720,	1 },
+	{ "Mode 12: 1280x960",		1280,	960,	1 },
+	{ "Mode 13: 1400x1050",		1400,	1050,	1 },
+	{ "Mode 14: 1280x960",		1280,	960,	1 },
+	{ "Mode 15: 1400x1050",		1400,	1050,	1 },
+	{ "Mode 16: 1600x1200",		1600,	1200,	1 },
+	{ "Mode 17: 2048x1536",		2048,	1536,	1 },
+	{ "Mode 18: 2560x1440",		2560,	1440,	1 },
+	{ "Mode 19: 3840x2160",		3840,	2160,	1 }
 };
 static int	s_numVidModes = ARRAY_LEN( r_vidModes );
 
@@ -833,6 +842,7 @@ void R_Register( void )
 	r_ext_multisample = ri.Cvar_Get( "r_ext_multisample", "0", CVAR_ARCHIVE | CVAR_LATCH );
 	ri.Cvar_CheckRange( r_ext_multisample, 0, 4, qtrue );
 	r_overBrightBits = ri.Cvar_Get ("r_overBrightBits", "1", CVAR_ARCHIVE | CVAR_LATCH );
+   r_widescreen = ri.Cvar_Get ("r_widescreen", "1", CVAR_ARCHIVE );
 	r_ignorehwgamma = ri.Cvar_Get( "r_ignorehwgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	r_mode = ri.Cvar_Get( "r_mode", "3", CVAR_ARCHIVE | CVAR_LATCH );
 	r_fullscreen = ri.Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE );

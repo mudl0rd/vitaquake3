@@ -62,15 +62,46 @@ struct retro_core_option_definition option_defs_us[] = {
       {
          { "480x272",   NULL },
          { "640x368",   NULL },
+         { "640x480",   NULL },
          { "720x408",   NULL },
+         { "856x480",   NULL },
+         { "800x600",   NULL },
          { "960x544",   NULL },
-		 { "1280x720",   NULL },
-		 { "1920x1080",   NULL },
-		 { "2560x1440",   NULL },
-		 { "3840x2160",   NULL },
+         { "1024x768",   NULL },
+         { "1152x864",   NULL },
+         { "1280x720",   NULL },
+         { "1280x960",   NULL },
+         { "1400x1050",   NULL },
+         { "1600x1200",   NULL },
+         { "1920x1080",   NULL },
+         { "2048x1536",   NULL },
+         { "2560x1440",   NULL },
+         { "3840x2160",   NULL },
          { NULL, NULL },
       },
       "960x544"
+   },
+    {
+      "vitaquakeiii_overbrights",
+      "Overbrights",
+      "Increases the range of lighting while comprimising color precision. Requires a restart.",
+      {
+         { "disabled",  "Disabled" },
+         { "enabled",   "Enabled" },
+         { NULL, NULL },
+      },
+      "enabled"
+   },
+   {
+      "vitaquakeiii_wide",
+      "Widescreen",
+      "",
+      {
+         { "disabled",  "Vert-" },
+         { "enabled",   "Hor+" },
+         { NULL, NULL },
+      },
+      "enabled"
    },
    {
       "vitaquakeiii_invert_y_axis",

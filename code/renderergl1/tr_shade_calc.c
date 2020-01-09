@@ -893,20 +893,39 @@ void RB_CalcEnvironmentTexCoords( float *st )
 
 	v = tess.xyz[0];
 	normal = tess.normal[0];
-
-	for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
+	if (backEnd.currentEntity->e.renderfx & RF_FIRST_PERSON) // Weapons
 	{
-		VectorSubtract (backEnd.or.viewOrigin, v, viewer);
-		VectorNormalizeFast (viewer);
+		for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
+		{
+			VectorCopy (backEnd.currentEntity->lightDir, viewer);
+			VectorNormalizeFast (viewer);
 
-		d = DotProduct (normal, viewer);
-
-		reflected[0] = normal[0]*2*d - viewer[0];
-		reflected[1] = normal[1]*2*d - viewer[1];
-		reflected[2] = normal[2]*2*d - viewer[2];
-
-		st[0] = 0.5 + reflected[1] * 0.5;
-		st[1] = 0.5 - reflected[2] * 0.5;
+			d = DotProduct (normal, viewer);
+	
+			reflected[0] = normal[0]*2*d - viewer[0];
+			reflected[1] = normal[1]*2*d - viewer[1];
+			reflected[2] = normal[2]*2*d - viewer[2];
+	
+			st[0] = 0.5 + reflected[1] * 0.5;
+			st[1] = 0.5 - reflected[2] * 0.5;
+		}
+	}
+	else	// World
+	{
+		for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
+		{
+			VectorSubtract (backEnd.or.viewOrigin, v, viewer);
+			VectorNormalizeFast (viewer);
+	
+			d = DotProduct (normal, viewer);
+	
+			reflected[0] = normal[0]*2*d - viewer[0];
+			reflected[1] = normal[1]*2*d - viewer[1];
+			reflected[2] = normal[2]*2*d - viewer[2];
+	
+			st[0] = 0.5 + reflected[1] * 0.5;
+			st[1] = 0.5 - reflected[2] * 0.5;
+		}
 	}
 }
 
@@ -1030,6 +1049,14 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 	vec3_t		lightDir;
 	int			numVertexes;
 
+   // leilei - Try to approximate stvoy's specular
+	vec3_t lightOrg;
+	if (backEnd.currentEntity->e.renderfx & RF_FIRST_PERSON)
+	{
+		VectorCopy(backEnd.currentEntity->lightDir, lightOrg);
+		VectorNormalizeFast( lightOrg );
+	}
+
 	v = tess.xyz[0];
 	normal = tess.normal[0];
 
@@ -1039,7 +1066,7 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 	for (i = 0 ; i < numVertexes ; i++, v += 4, normal += 4, alphas += 4) {
 		float ilength;
 
-		VectorSubtract( lightOrigin, v, lightDir );
+		VectorSubtract( lightOrg, v, lightDir );
 //		ilength = Q_rsqrt( DotProduct( lightDir, lightDir ) );
 		VectorNormalizeFast( lightDir );
 

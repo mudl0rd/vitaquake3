@@ -66,7 +66,11 @@ ifeq ($(platform), unix)
 	EXT ?= so
    TARGET := $(TARGET_NAME)_libretro.$(EXT)
    fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+   ifneq ($(findstring SunOS,$(shell uname -a)),)
+      SHARED := -shared -z defs -z gnu-version-script-compat
+   else
+      SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+   endif
    LDFLAGS += -lGL
 else ifeq ($(platform), linux-portable)
    TARGET := $(TARGET_NAME)_libretro.$(EXT)

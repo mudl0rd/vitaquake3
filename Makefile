@@ -67,7 +67,7 @@ ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.$(EXT)
    fpic := -fPIC
    ifneq ($(findstring SunOS,$(shell uname -a)),)
-      SHARED := -shared -z defs -z gnu-version-script-compat
+      SHARED := -shared -z defs
    else
       SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
    endif

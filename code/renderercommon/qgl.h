@@ -119,7 +119,9 @@ extern uint16_t *indices;
 #include <GL/gl.h>
 #endif
 
+#ifndef APIENTRY
 #define APIENTRY
+#endif
 
 extern void vglVertexAttribPointerMapped(int id, void* ptr);
 

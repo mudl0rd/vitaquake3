@@ -189,8 +189,7 @@ ifeq ($(platform), libnx)
   COMPILE_ARCH=aarch64
 endif
 
-CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) -DUSE_ICON -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" \
-	-DUSE_INTERNAL_JPEG
+CFLAGS   += -Wall -D__LIBRETRO__ $(fpic) -DUSE_ICON -DARCH_STRING=\"$(COMPILE_ARCH)\" -DNO_VM_COMPILED -DBOTLIB -DPRODUCT_VERSION=\"1.36_GIT_ba68b99c-2018-01-23\" -DUSE_INTERNAL_JPEG
 CXXFLAGS += -Wall -D__LIBRETRO__ $(fpic) -fpermissive -fno-rtti -fno-exceptions -std=gnu++11
 
 ifeq ($(platform), unix)
@@ -207,13 +206,11 @@ $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJECTS)
 else
-	@$(if $(Q), $(shell echo echo LD $@),)
-	$(Q)$(CC) $(fpic) $(SHARED) -o $@ $(OBJECTS) $(LDFLAGS)
+	$(CC) $(fpic) $(SHARED) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
 
 %.o: %.c
-	@$(if $(Q), $(shell echo echo CC $<),)
-	$(Q)$(CC) $(CFLAGS) $(fpic) -c -o $@ $<
+	$(CC) $(CFLAGS) $(fpic) -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)

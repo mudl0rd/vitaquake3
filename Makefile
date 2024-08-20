@@ -144,7 +144,7 @@ else
    ifneq ($(DEBUG), 1)
    SHARED += -s
    endif
-   SHARED := -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
+   SHARED += -Wl,--version-script=$(CORE_DIR)/link.T -Wl,--no-undefined
    LDFLAGS += -lwsock32 -lws2_32 -lopengl32
 endif
 

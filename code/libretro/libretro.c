@@ -349,6 +349,7 @@ static void context_destroy()
 	context_needs_reinit = true;
 }
 
+/*
 static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
 {
 	// character-only events are discarded
@@ -358,9 +359,9 @@ static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_
 		else
 			Sys_SetKeys((uint32_t) keycode, 0);
 	}
-}
+}*/
 
-first_reset = true;
+bool first_reset = true;
 
 extern void CL_Vid_Restart_f( void );
 
@@ -1173,7 +1174,7 @@ bool retro_load_game(const struct retro_game_info *info)
 #endif
 	bool use_external_savedir = false;
 	const char *base_save_dir = NULL;
-	struct retro_keyboard_callback cb = { keyboard_cb };
+	//struct retro_keyboard_callback cb = { keyboard_cb };
 
 	if (!info)
 		return false;

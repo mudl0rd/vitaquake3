@@ -349,17 +349,19 @@ static void context_destroy()
 	context_needs_reinit = true;
 }
 
-/*
+void Key_Event(int key, int value, int time);
+int frametime = 0;
 static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
 {
 	// character-only events are discarded
+	int time = frametime;
 	if (keycode != RETROK_UNKNOWN) {
 		if (down)
-			Sys_SetKeys((uint32_t) keycode, 1);
+			Key_Event((uint32_t) keycode,1, time);
 		else
-			Sys_SetKeys((uint32_t) keycode, 0);
+			Key_Event((uint32_t) keycode,0, time);
 	}
-}*/
+}
 
 bool first_reset = true;
 
@@ -990,7 +992,7 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    static const struct retro_controller_info ports[] = {
-      { port_1, 3 },
+      { port_1, 4 },
       { 0 },
    };
 
@@ -1174,7 +1176,7 @@ bool retro_load_game(const struct retro_game_info *info)
 #endif
 	bool use_external_savedir = false;
 	const char *base_save_dir = NULL;
-	//struct retro_keyboard_callback cb = { keyboard_cb };
+	struct retro_keyboard_callback cb = { keyboard_cb };
 
 	if (!info)
 		return false;
@@ -1184,7 +1186,7 @@ bool retro_load_game(const struct retro_game_info *info)
 	for (i=0; path_lower[i]; ++i)
 		path_lower[i] = tolower(path_lower[i]);
 	
-//	environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
+    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
 	
 	update_variables(true);
 
@@ -2163,56 +2165,56 @@ void Sys_SetKeys(int time){
 			old_ret = ret;
 		}
 		break;
-		/*
+
 		case RETRO_DEVICE_KEYBOARD:
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
-				Sys_SetKeys(K_MOUSE1, 1);
+				Key_Event(K_MOUSE1, 1, time);
 			else
-				Sys_SetKeys(K_MOUSE1, 0);
+				Key_Event(K_MOUSE1, 0, time);
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
-				Sys_SetKeys(K_MOUSE2, 1);
+				Key_Event(K_MOUSE2, 1, time);
 			else
-				Sys_SetKeys(K_MOUSE2, 0);
+				Key_Event(K_MOUSE2, 0, time);
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_MIDDLE))
-				Sys_SetKeys(K_MOUSE3, 1);
+				Key_Event(K_MOUSE3, 1, time);
 			else
-				Sys_SetKeys(K_MOUSE3, 0);
+				Key_Event(K_MOUSE3, 0, time);
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELUP))
-				Sys_SetKeys(K_MOUSE4, 1);
+				Key_Event(K_MOUSE4, 1, time);
 			else
-				Sys_SetKeys(K_MOUSE4, 0);
+				Key_Event(K_MOUSE4, 0, time);
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_WHEELDOWN))
-				Sys_SetKeys(K_MOUSE5, 1);
+				Key_Event(K_MOUSE5, 1,time);
 			else
-				Sys_SetKeys(K_MOUSE5, 0);
+				Key_Event(K_MOUSE5, 0,time);
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP))
-				Sys_SetKeys(K_MOUSE6, 1);
+				Key_Event(K_MWHEELUP, 1, time);
 			else
-				Sys_SetKeys(K_MOUSE6, 0);
+				Key_Event(K_MWHEELUP, 0, time);
 			if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN))
-				Sys_SetKeys(K_MOUSE7, 1);
+				Key_Event(K_MWHEELDOWN, 1, time);
 			else
-				Sys_SetKeys(K_MOUSE7, 0);
+				Key_Event(K_MWHEELDOWN, 0, time);
 			if (quake_devices[0] == RETRO_DEVICE_KEYBOARD) {
 				if (input_cb(port, RETRO_DEVICE_KEYBOARD, 0, RETROK_UP))
-					Sys_SetKeys(K_UPARROW, 1);
+					Key_Event(K_UPARROW, 1,time);
 				else
-					Sys_SetKeys(K_UPARROW, 0);
+					Key_Event(K_UPARROW, 0,time);
 				if (input_cb(port, RETRO_DEVICE_KEYBOARD, 0, RETROK_DOWN))
-					Sys_SetKeys(K_DOWNARROW, 1);
+					Key_Event(K_DOWNARROW, 1,time);
 				else
-					Sys_SetKeys(K_DOWNARROW, 0);
+					Key_Event(K_DOWNARROW, 0,time);
 				if (input_cb(port, RETRO_DEVICE_KEYBOARD, 0, RETROK_LEFT))
-					Sys_SetKeys(K_LEFTARROW, 1);
+					Key_Event(K_LEFTARROW, 1,time);
 				else
-					Sys_SetKeys(K_LEFTARROW, 0);
+					Key_Event(K_LEFTARROW, 0,time);
 				if (input_cb(port, RETRO_DEVICE_KEYBOARD, 0, RETROK_RIGHT))
-					Sys_SetKeys(K_RIGHTARROW, 1);
+					Key_Event(K_RIGHTARROW, 1,time);
 				else
-					Sys_SetKeys(K_RIGHTARROW, 0);
+					Key_Event(K_RIGHTARROW, 0,time);
 			}
 			break;
-		*/
+		
 		case RETRO_DEVICE_NONE:
 			break;
 		}
@@ -2230,8 +2232,11 @@ int old_x = - 1, old_y;
 void IN_Frame( void )
 {
 	int time = Sys_Milliseconds();
+	frametime = time;
 	Sys_SetKeys(time);
 	int lsx, lsy, rsx, rsy;
+	static int cur_mx;
+    static int cur_my;
 	
 	uint32_t virt_buttons = 0x00;
 	
@@ -2290,6 +2295,23 @@ void IN_Frame( void )
             rsy = rsy + analog_deadzone;
       } else rsy = 0;
 	  Com_QueueEvent(time, SE_MOUSE, rsx / slowdown, rsy / slowdown, 0, NULL);
+	}
+
+	if(quake_devices[0] == RETRO_DEVICE_KEYBOARD)
+	{
+	  rsx = input_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+      rsy = input_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+	  float sens = 1.0;
+
+      if (rsx != cur_mx || rsy != cur_my)
+      {
+
+         rsx *= sens;
+         rsy *= sens;
+         cur_mx = rsx;
+         cur_my = rsy;
+      }
+		  Com_QueueEvent(time, SE_MOUSE, rsx, rsy, 0, NULL);
 	}
 	
 }
